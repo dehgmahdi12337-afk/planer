@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>پلنر من</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--tx:#1c1f2a;--mut:#7a8095;--ac:#4f6df5;--ok:#22a06b;--ln:#e6e8f0;--bar:#dfe4fb;--bad:#e5484d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
@@ -94,6 +94,10 @@ input:-webkit-autofill{-webkit-box-shadow:0 0 0 100px var(--card) inset;-webkit-
 h1{display:flex;align-items:center;gap:8px}h1 svg{color:var(--ac)}
 #q{padding-right:44px;background-repeat:no-repeat;background-position:right 14px center;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%238b95a8%22 stroke-width=%222%22 stroke-linecap=%22round%22%3E%3Ccircle cx=%2211%22 cy=%2211%22 r=%227%22/%3E%3Cpath d=%22M21 21l-4.3-4.3%22/%3E%3C/svg%3E')}
 #tip{position:fixed;z-index:60;display:none;background:var(--sheet);color:var(--tx);border:1px solid var(--gb);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:var(--sh);padding:6px 11px;border-radius:12px;font-size:12px;pointer-events:none;white-space:nowrap}
+
+html,body,*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-user-select:text;user-select:text}
+html,body{overscroll-behavior:none}
 </style>
 <body>
 <div class="top"><h1>📋 پلنر من</h1><div class="row"><button class="s" id="th">🌓</button></div></div>
@@ -171,7 +175,7 @@ function stats(){const ds=days(U.rng),b=bars(ds),T=b.rows.reduce((a,r)=>a+r.t,0)
  <div class="card"><b>بر اساس دسته</b><div style="margin-top:8px">${cb||'<div class="empty">داده‌ای نیست</div>'}</div></div><div class="card"><b>بر اساس اولویت</b><div style="margin-top:8px">${pb||'<div class="empty">داده‌ای نیست</div>'}</div></div>`}
 function tools(){return `<div class="card"><b>⏱ تایمر تمرکز</b><div class="big" id="tmv">${U.tm?'':'۲۵:۰۰'}</div><div class="row"><input type="number" id="tmm" value="25" min="1" max="180"><button id="tms">${U.tm?'توقف':'شروع'}</button></div></div>
  <div class="card"><b>💾 پشتیبان‌گیری</b><div class="note">متن زیر رو کپی و جایی نگه دار. برای بازیابی، متن رو اینجا بچسبون.</div><textarea id="bk"></textarea><div class="row" style="margin-top:8px"><button id="bkc">کپی</button><button class="s" id="bki">بازیابی از متن</button><button class="s" id="bkd">حذف انجام‌شده‌ها</button></div></div>
- <div class="card"><b>🔔 اعلان</b><div class="note" id="ns"></div><button style="margin-top:8px" id="nb">فعال‌سازی اعلان</button><div class="note" style="margin-top:8px">اعلان‌ها فقط وقتی برنامه باز است کار می‌کنند. داده‌ها فقط روی همین گوشی ذخیره می‌شوند.</div></div>`}
+ <div class="card"><b>🔔 اعلان</b><div class="note" id="ns"></div><button style="margin-top:8px" id="nb">فعال‌سازی اعلان</button><div class="note" style="margin-top:8px">داده‌ها فقط روی همین گوشی ذخیره می‌شوند.</div></div>`}
 function nst(){const e=$('ns');if(!e)return;e.textContent=!('Notification' in window)?'این مرورگر اعلان سیستمی ندارد؛ پیام داخل برنامه نشان داده می‌شود.':Notification.permission==='granted'?'اعلان سیستمی فعال است ✓':Notification.permission==='denied'?'در تنظیمات مرورگر بسته شده.':'هنوز فعال نشده.'}
 function render(){const td=TD();
  $('chips').innerHTML=['',...Object.keys(CATS)].map(c=>`<button data-cat="${c}" data-ok="cat:${c}" data-tip="${c||'همه'}" aria-label="${c||'همه'}" class="${U.cat===c?'on':''}">${ic(c?CI[c]:'grid',20)}</button>`).join('');
@@ -258,6 +262,24 @@ function reopen(){document.querySelectorAll('.open').forEach(x=>x.classList.remo
 function showTip(el,ms){const o=el.closest('[data-ok]');if(!o)return;OPEN={key:o.dataset.ok,until:Date.now()+(ms||2200)};reopen();clearTimeout(tt);tt=setTimeout(()=>{OPEN=null;reopen()},ms||2200)}
 $('plus').dataset.ok='plus';$('th').dataset.ok='th';
 load();render();form();tick();setInterval(tick,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
+
+;(function(){
+window.confirm=function(){return true};
+window.alert=function(m){try{toast({title:String(m),id:''})}catch(e){}};
+var perm=false;
+nst=function(){var e=$('ns'),b=$('nb');if(e)e.textContent=perm?'اعلان فعال است. یادآورها وقتی برنامه بسته است هم تو نوار اعلان گوشی می‌رسن.':'اعلان خاموشه. دکمه‌ی زیر رو بزن و اجازه بده. اگه پنجره‌ای نیومد: تنظیمات گوشی ← برنامه‌ها ← پلنر ← اعلان‌ها رو روشن کن.';if(b)b.style.display=perm?'none':''};
+window.onPerm=function(ok){perm=!!ok;nst()};
+function post(o){try{if(window.Planner)Planner.postMessage(JSON.stringify(o))}catch(e){}}
+function sync(){var n=Date.now(),td=TD();
+ post({k:'sync',
+  r:S.tasks.filter(function(t){return !t.done&&t.at&&t.at>n}).map(function(t){return{id:String(t.id),title:t.title,at:t.at}}),
+  w:S.tasks.filter(function(t){return !t.done&&t.date===td}).sort(function(a,b){return (a.time||'99')<(b.time||'99')?-1:1}).map(function(t){return{id:String(t.id),title:t.title,time:t.time?fs(t.time):''}})})}
+var _s=save;save=function(){_s();sync()};
+window.applyNative=function(ids){ids.forEach(function(id){var t=S.tasks.find(function(x){return x.id===id});if(t&&!t.done)toggle(id)});sync()};
+window.openAdd=function(){U.edit=null;U.form=true;form();window.scrollTo(0,0)};
+document.addEventListener('click',function(e){if(e.target.closest('#nb')){e.stopImmediatePropagation();e.preventDefault();post({k:'perm'})}},true);
+sync();setInterval(sync,60000);
+})();
 </script>
 </body>
 </html>
