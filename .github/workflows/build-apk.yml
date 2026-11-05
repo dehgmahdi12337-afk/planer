@@ -1,0 +1,98 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create Flutter project
+        run: flutter create --org com.example --project-name planner_app --platforms=android app
+
+      - name: Add packages
+        working-directory: app
+        run: flutter pub add webview_flutter flutter_local_notifications:^17.2.4 timezone
+
+      - name: Copy app files
+        run: |
+          mkdir -p app/assets
+          cp planner.html app/assets/planner.html
+          cp main.dart app/lib/main.dart
+
+      - name: Configure project (assets, gradle, manifest)
+        run: |
+          python3 - <<'EOF'
+          import os, re
+
+          # 1) pubspec: register the html asset
+          p = 'app/pubspec.yaml'
+          s = open(p, encoding='utf-8').read()
+          s = s.replace('uses-material-design: true',
+                        'uses-material-design: true\n  assets:\n    - assets/planner.html', 1)
+          assert 'assets/planner.html' in s
+          open(p, 'w', encoding='utf-8').write(s)
+
+          # 2) gradle: core library desugaring (needed by notifications)
+          kts = os.path.exists('app/android/app/build.gradle.kts')
+          p = 'app/android/app/build.gradle.kts' if kts else 'app/android/app/build.gradle'
+          s = open(p, encoding='utf-8').read()
+          if kts:
+              s = s.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true', 1)
+              s += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n'
+          else:
+              s = s.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
+              s += "\ndependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'\n}\n"
+          assert 'esugaring' in s
+          open(p, 'w', encoding='utf-8').write(s)
+
+          # 3) manifest: permissions, notification receivers, app name
+          p = 'app/android/app/src/main/AndroidManifest.xml'
+          m = open(p, encoding='utf-8').read()
+          perm = ('<uses-permission android:name="android.permission.INTERNET"/>\n'
+                  '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
+                  '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n'
+                  '    ')
+          rec = ('    <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>\n'
+                 '        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">\n'
+                 '            <intent-filter>\n'
+                 '                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n'
+                 '                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>\n'
+                 '                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>\n'
+                 '                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>\n'
+                 '            </intent-filter>\n'
+                 '        </receiver>\n'
+                 '    ')
+          m = m.replace('<application', perm + '<application', 1)
+          m = m.replace('</application>', rec + '</application>', 1)
+          m = re.sub(r'android:label="[^"]*"', 'android:label="پلنر"', m, count=1)
+          assert 'ScheduledNotificationReceiver' in m
+          open(p, 'w', encoding='utf-8').write(m)
+          EOF
+
+      - name: Build release APK
+        working-directory: app
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: planner-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
