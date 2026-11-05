@@ -87,7 +87,17 @@ input:-webkit-autofill{-webkit-box-shadow:0 0 0 100px var(--card) inset;-webkit-
 #q{background-size:15px 15px;background-position:right 15px center;padding-right:40px}
 .fld{flex:1;min-width:90px;display:flex;flex-direction:column;gap:5px}
 .fl{font-size:12px;font-weight:600;color:var(--mut)}
-.st{margin:0 0 12px;font-size:17px;font-weight:700;text-align:center}button svg{display:block}
+.st{margin:0 0 12px;font-size:17px;font-weight:700;text-align:center}
+.pscrim{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+.pk{width:100%;text-align:start;padding:12px 14px}
+.mcs{display:flex;gap:6px;overflow-x:auto;padding:10px 0}.mc{white-space:nowrap;padding:7px 13px;background:var(--bg);color:var(--tx);border:1px solid var(--ln)}.mc.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;color:var(--mut);font-size:12px;margin-top:4px}
+.dg{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}.dg i{display:block}
+.dy{padding:11px 0;border-radius:14px;background:transparent;color:var(--tx);font-size:15px}.dy.td{box-shadow:inset 0 0 0 1.5px var(--ac)}.dy.sel{background:var(--ac);color:#fff}
+.wh{position:relative;height:180px;flex:1}
+.ws{position:relative;z-index:1;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;padding:72px 0;scrollbar-width:none}.ws::-webkit-scrollbar{display:none}
+.wi{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-size:20px;color:var(--mut)}.wi.on{color:var(--tx);font-weight:700;font-size:24px}
+.wb{position:absolute;left:0;right:0;top:72px;height:36px;border-radius:12px;background:rgba(51,144,236,.16);pointer-events:none}button svg{display:block}
 .av{color:#fff;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 #th{width:42px;height:42px;padding:0;display:grid;place-items:center}
 #plus{display:grid;place-items:center}
@@ -261,6 +271,46 @@ let OPEN=null;
 function reopen(){document.querySelectorAll('.open').forEach(x=>x.classList.remove('open'));if(OPEN&&Date.now()<OPEN.until){const x=[...document.querySelectorAll('[data-ok]')].find(y=>y.dataset.ok===OPEN.key);if(x)x.classList.add('open')}}
 function showTip(el,ms){const o=el.closest('[data-ok]');if(!o)return;OPEN={key:o.dataset.ok,until:Date.now()+(ms||2200)};reopen();clearTimeout(tt);tt=setTimeout(()=>{OPEN=null;reopen()},ms||2200)}
 $('plus').dataset.ok='plus';$('th').dataset.ok='th';
+const MN=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],WD=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+const JFm=new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-latn',{year:'numeric',month:'numeric',day:'numeric'});
+function jp(iso){const o={};JFm.formatToParts(new Date(iso+'T12:00:00')).forEach(x=>{o[x.type]=x.value});return{y:+(o.year||o.relatedYear),m:+o.month,d:+o.day}}
+const dow=iso=>(new Date(iso+'T12:00:00').getDay()+1)%7;
+const jfmt=iso=>{const j=jp(iso);return WD[dow(iso)]+'، '+fs(j.d)+' '+MN[j.m-1]+' '+fs(j.y)};
+const mfirst=iso=>addD(iso,-(jp(iso).d-1));
+let P=null;
+const pkb=document.createElement('div');pkb.id='pkb';pkb.className='pscrim';document.body.appendChild(pkb);
+function updPk(){const d=$('f-d'),h=$('f-h'),a=$('pk-f-d'),b=$('pk-f-h');if(d&&a)a.textContent=jfmt(d.value||TD());if(h&&b)b.textContent=h.value?fs(h.value):'بدون ساعت (برای تعیین بزن)'}
+function pclose(){pkb.style.display='none';pkb.innerHTML='';updPk()}
+function mkPk(id,fn){const el=$(id);if(!el)return;el.style.display='none';const b=document.createElement('button');b.type='button';b.className='s pk';b.id='pk-'+id;b.onclick=fn;el.parentNode.appendChild(b)}
+function openDate(){const cur=$('f-d').value||TD();P={first:mfirst(cur),sel:cur};pkb.style.display='flex';drawDate()}
+function drawDate(){const j=jp(P.first),td=TD();let len=28;while(jp(addD(P.first,len)).m===j.m)len++;
+ let g='';for(let i=0;i<dow(P.first);i++)g+='<i></i>';
+ for(let d=1;d<=len;d++){const iso=addD(P.first,d-1);g+=`<button type='button' class='dy${iso===P.sel?' sel':''}${iso===td?' td':''}' data-iso='${iso}'>${fs(d)}</button>`}
+ const chips=MN.map((n,i)=>`<button type='button' class='mc${i+1===j.m?' on':''}' data-mi='${i+1}'>${n}</button>`).join('');
+ pkb.innerHTML=`<div class='card sheet'><div class='grab'></div><div class='row' style='justify-content:space-between;flex-wrap:nowrap'><button type='button' class='s' data-nav='-1'>›</button><b>${MN[j.m-1]} ${fs(j.y)}</b><button type='button' class='s' data-nav='1'>‹</button></div><div class='mcs'>${chips}</div><div class='wk'>${WD.map(w=>'<span>'+w[0]+'</span>').join('')}</div><div class='dg'>${g}</div><div class='row' style='margin-top:12px'><button type='button' data-today='1'>امروز</button><button type='button' class='s' data-close='1'>بستن</button></div></div>`;
+ const on=pkb.querySelector('.mc.on');if(on)on.scrollIntoView({inline:'center',block:'nearest'})}
+const rd=w=>Math.max(0,Math.min(w.children.length-1,Math.round(w.scrollTop/36)));
+function mark(w){const i=rd(w);[...w.children].forEach((c,k)=>c.classList.toggle('on',k===i))}
+function openTime(){const v=$('f-h').value,n=new Date();const h=v?+v.slice(0,2):n.getHours(),m=v?+v.slice(3,5):n.getMinutes();
+ const col=(id,arr)=>`<div class='wh'><div class='wb'></div><div class='ws' id='${id}'>${arr.map(x=>`<div class='wi'>${x}</div>`).join('')}</div></div>`;
+ const hs=[...Array(24)].map((_,i)=>fs(i+1)),ms=[...Array(60)].map((_,i)=>fs(z(i)));
+ pkb.innerHTML=`<div class='card sheet'><div class='grab'></div><h3 class='st'>تنظیم ساعت</h3><div class='row' style='flex-wrap:nowrap;direction:ltr'>${col('wsH',hs)}<b style='font-size:26px'>:</b>${col('wsM',ms)}</div><div class='note' style='text-align:center'>ساعت ۱ تا ۲۴ · دقیقه ۰ تا ۵۹ · بالا و پایین بکش</div><div class='row' style='margin-top:12px'><button type='button' data-tok='1'>تایید</button><button type='button' class='s' data-tclr='1'>بدون ساعت</button><button type='button' class='s' data-close='1'>بستن</button></div></div>`;
+ pkb.style.display='flex';const H=$('wsH'),M=$('wsM');H.scrollTop=((h===0?24:h)-1)*36;M.scrollTop=m*36;
+ [H,M].forEach(w=>{w.addEventListener('scroll',()=>mark(w));mark(w);w.onclick=ev=>{const it=ev.target.closest('.wi');if(it)w.scrollTo({top:[...w.children].indexOf(it)*36,behavior:'smooth'})}})}
+pkb.addEventListener('click',e=>{if(e.target===pkb){pclose();return}
+ const t=e.target.closest('button');if(!t)return;const a=k=>t.getAttribute(k);
+ if(a('data-iso')){$('f-d').value=a('data-iso');pclose()}
+ else if(a('data-nav')){P.first=a('data-nav')==='1'?mfirst(addD(P.first,32)):mfirst(addD(P.first,-1));drawDate()}
+ else if(a('data-mi')){let m=jp(P.first).m;const to=+a('data-mi');while(m<to){P.first=mfirst(addD(P.first,32));m++}while(m>to){P.first=mfirst(addD(P.first,-1));m--}drawDate()}
+ else if(a('data-today')){$('f-d').value=TD();pclose()}
+ else if(a('data-tok')){const h=rd($('wsH'))+1;$('f-h').value=z(h===24?0:h)+':'+z(rd($('wsM')));pclose()}
+ else if(a('data-tclr')){$('f-h').value='';pclose()}
+ else if(a('data-close'))pclose()});
+function deco(){const f=$('fb');if(!f.firstChild)return;
+ const L={'f-t':'عنوان کار','f-d':'تاریخ (شمسی)','f-h':'ساعت','f-p':'اولویت','f-c':'دسته','f-r':'تکرار','f-m':'یادآور','f-u':'مدت‌زمان انجام'};
+ for(const k in L){const el=$(k);if(!el)continue;const w=document.createElement('div');w.className='fld';const l=document.createElement('label');l.className='fl';l.htmlFor=k;l.textContent=L[k];el.parentNode.insertBefore(w,el);w.appendChild(l);w.appendChild(el)}
+ const g=f.querySelector('.grab');if(g){const h=document.createElement('h3');h.className='st';h.textContent=U.edit?'ویرایش کار':'کار جدید';g.after(h)}
+ $('f-t').autocomplete='off';mkPk('f-d',openDate);mkPk('f-h',openTime);updPk()}
 load();render();form();tick();setInterval(tick,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
 
 ;(function(){
