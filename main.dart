@@ -300,7 +300,7 @@ class _PlannerWebViewState extends State<PlannerWebView>
 
   Future<void> _chooseBackupDirectory() async {
     try {
-      final selected = await FilePicker.platform.getDirectoryPath();
+      final selected = await FilePicker.getDirectoryPath();
       if (selected != null && selected.isNotEmpty) {
         _backupDirectory = selected;
         final docs = await getApplicationDocumentsDirectory();
@@ -318,7 +318,7 @@ class _PlannerWebViewState extends State<PlannerWebView>
 
   Future<void> _restoreBackup() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
         withData: true,
