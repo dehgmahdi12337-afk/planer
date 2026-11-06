@@ -29,12 +29,12 @@ jobs:
 
       - name: Add packages
         working-directory: app
-        run: flutter pub add webview_flutter flutter_local_notifications:^17.2.4 timezone file_picker path_provider
+        run: flutter pub add webview_flutter flutter_local_notifications:^17.2.4 timezone file_picker:10.3.10 path_provider
 
       - name: Ensure backup dependencies
         working-directory: app
         run: |
-          flutter pub add file_picker path_provider
+          flutter pub add file_picker:10.3.10 path_provider
           flutter pub get
           grep -A 2 -E '^(  file_picker:|  path_provider:)' pubspec.yaml
 
