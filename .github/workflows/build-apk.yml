@@ -31,12 +31,10 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
-            if [ -z "${!name}" ]; then
-              echo "::error::Missing GitHub Actions secret: ANDROID_${name#KEYSTORE_}"
-              exit 1
-            fi
-          done
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Missing secret ANDROID_KEYSTORE_BASE64"; exit 1; fi
+          if [ -z "$KEYSTORE_PASSWORD" ]; then echo "::error::Missing secret ANDROID_KEYSTORE_PASSWORD"; exit 1; fi
+          if [ -z "$KEY_ALIAS" ]; then echo "::error::Missing secret ANDROID_KEY_ALIAS"; exit 1; fi
+          if [ -z "$KEY_PASSWORD" ]; then echo "::error::Missing secret ANDROID_KEY_PASSWORD"; exit 1; fi
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
           test -s "$RUNNER_TEMP/upload-keystore.jks"
 
@@ -118,6 +116,10 @@ jobs:
               'getByName("release") { signingConfig = signingConfigs.getByName("release") }',
               g,
               count=1,
+          )
+          g = g.replace(
+              'signingConfig = signingConfigs.getByName("debug")',
+              'signingConfig = signingConfigs.getByName("release")',
           )
           g = g.replace(
               "compileOptions {",
