@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Android releases
 
 on:
   workflow_dispatch:
@@ -12,94 +12,175 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Java
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      - name: Check release signing secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub Actions secret: ANDROID_${name#KEYSTORE_}"
+              exit 1
+            fi
+          done
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
+          test -s "$RUNNER_TEMP/upload-keystore.jks"
+
       - name: Create Flutter project
-        run: flutter create --org com.example --project-name planner_app --platforms=android app
+        run: flutter create --org ir.dehgmahdi --project-name planner --platforms=android app
 
-      - name: Add packages
-        working-directory: app
-        run: flutter pub add webview_flutter flutter_local_notifications:^17.2.4 timezone file_picker:11.0.3 path_provider
-
-      - name: Ensure backup dependencies
+      - name: Add Flutter packages
         working-directory: app
         run: |
-          flutter pub add file_picker:11.0.3 path_provider
-          flutter pub get
-          grep -A 2 -E '^(  file_picker:|  path_provider:)' pubspec.yaml
+          flutter pub add webview_flutter flutter_local_notifications:^17.2.4 timezone file_picker:11.0.3 path_provider
+          flutter pub add --dev flutter_launcher_icons
 
-      - name: Copy app files
+      - name: Copy app files and icon
         run: |
           mkdir -p app/assets
           cp planner.html app/assets/planner.html
           cp main.dart app/lib/main.dart
+          if [ -f assets/app_icon.png ]; then
+            cp assets/app_icon.png app/assets/app_icon.png
+          else
+            echo "::warning::assets/app_icon.png is not in the repository yet; Flutter's default launcher icon will be used."
+          fi
 
-      - name: Configure project (assets, gradle, manifest)
-        run: |
-          python3 - <<'EOF'
-          import os, re
-
-          # 1) pubspec: register the html asset
-          p = 'app/pubspec.yaml'
-          s = open(p, encoding='utf-8').read()
-          s = s.replace('uses-material-design: true',
-                        'uses-material-design: true\n  assets:\n    - assets/planner.html', 1)
-          assert 'assets/planner.html' in s
-          open(p, 'w', encoding='utf-8').write(s)
-
-          # 2) gradle: core library desugaring (needed by notifications)
-          kts = os.path.exists('app/android/app/build.gradle.kts')
-          p = 'app/android/app/build.gradle.kts' if kts else 'app/android/app/build.gradle'
-          s = open(p, encoding='utf-8').read()
-          if kts:
-              s = s.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true', 1)
-              s += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n'
-          else:
-              s = s.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
-              s += "\ndependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'\n}\n"
-          assert 'esugaring' in s
-          open(p, 'w', encoding='utf-8').write(s)
-
-          # 3) manifest: permissions, notification receivers, app name
-          p = 'app/android/app/src/main/AndroidManifest.xml'
-          m = open(p, encoding='utf-8').read()
-          perm = ('<uses-permission android:name="android.permission.INTERNET"/>\n'
-                  '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
-                  '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n'
-                  '    ')
-          rec = ('    <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>\n'
-                 '        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">\n'
-                 '            <intent-filter>\n'
-                 '                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n'
-                 '                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>\n'
-                 '                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>\n'
-                 '                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>\n'
-                 '            </intent-filter>\n'
-                 '        </receiver>\n'
-                 '    ')
-          m = m.replace('<application', perm + '<application', 1)
-          m = m.replace('</application>', rec + '</application>', 1)
-          m = re.sub(r'android:label="[^"]*"', 'android:label="پلنر"', m, count=1)
-          assert 'ScheduledNotificationReceiver' in m
-          open(p, 'w', encoding='utf-8').write(m)
-          EOF
-
-      - name: Build release APK
+      - name: Configure Android app
         working-directory: app
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          pubspec = Path("pubspec.yaml")
+          text = pubspec.read_text(encoding="utf-8")
+          text = text.replace(
+              "uses-material-design: true",
+              "uses-material-design: true\n  assets:\n    - assets/planner.html",
+              1,
+          )
+          if Path("assets/app_icon.png").exists():
+              text += """
+          flutter_launcher_icons:
+            android: true
+            ios: false
+            image_path: assets/app_icon.png
+            adaptive_icon_background: "#FFFFFF"
+            adaptive_icon_foreground: assets/app_icon.png
+          """
+          pubspec.write_text(text, encoding="utf-8")
+
+          gradle = Path("android/app/build.gradle.kts")
+          if not gradle.exists():
+              raise SystemExit("Expected Android Kotlin Gradle file was not generated.")
+          g = gradle.read_text(encoding="utf-8")
+          g = g.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
+          g = re.sub(r"applicationId = \"[^\"]+\"", 'applicationId = "ir.dehgmahdi.planner"', g, count=1)
+          g = re.sub(r"minSdk = flutter.minSdkVersion", "minSdk = 23", g, count=1)
+          g = re.sub(r"targetSdk = flutter.targetSdkVersion", "targetSdk = 36", g, count=1)
+          if "signingConfigs {" not in g:
+              g = g.replace(
+                  "    buildTypes {",
+                  """    signingConfigs {
+                  create("release") {
+                      storeFile = file(System.getenv("ANDROID_KEYSTORE_PATH"))
+                      storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+                  }
+              }
+
+              buildTypes {""",
+                  1,
+              )
+          g = re.sub(
+              r'getByName\("release"\)\s*\{[^}]*\}',
+              'getByName("release") { signingConfig = signingConfigs.getByName("release") }',
+              g,
+              count=1,
+          )
+          g = g.replace(
+              "compileOptions {",
+              "compileOptions {\n        isCoreLibraryDesugaringEnabled = true",
+              1,
+          )
+          if "coreLibraryDesugaring(" not in g:
+              g += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n'
+          gradle.write_text(g, encoding="utf-8")
+
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          m = manifest.read_text(encoding="utf-8")
+          permissions = """
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+          """
+          if "android.permission.INTERNET" not in m:
+              m = m.replace("<application", permissions + "\n    <application", 1)
+          receivers = """
+                  <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+                  <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+                      <intent-filter>
+                          <action android:name="android.intent.action.BOOT_COMPLETED" />
+                          <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                          <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                          <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+                      </intent-filter>
+                  </receiver>
+          """
+          if "ScheduledNotificationReceiver" not in m:
+              m = m.replace("</application>", receivers + "\n</application>", 1)
+          m = re.sub(r'android:label="[^"]*"', 'android:label="پلنر"', m, count=1)
+          manifest.write_text(m, encoding="utf-8")
+          PY
+          if [ -f assets/app_icon.png ]; then
+            dart run flutter_launcher_icons
+          fi
+          flutter pub get
+
+      - name: Build signed APK
+        working-directory: app
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build apk --release
 
-      - name: Upload APK
+      - name: Build signed Android App Bundle
+        working-directory: app
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build appbundle --release
+
+      - name: Upload APK and AAB
         uses: actions/upload-artifact@v4
         with:
-          name: planner-apk
-          path: app/build/app/outputs/flutter-apk/app-release.apk
+          name: planner-android-release
+          path: |
+            app/build/app/outputs/flutter-apk/app-release.apk
+            app/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
