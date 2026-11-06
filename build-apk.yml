@@ -1,167 +1,20 @@
-name: Build APK
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [main, master]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Create Flutter project
-        run: flutter create --org com.example --project-name planner_app --platforms=android app
-
-      - name: Add packages
-        working-directory: app
-        run: flutter pub add webview_flutter flutter_local_notifications:^17.2.4 timezone
-
-      - name: Copy app files
-        run: |
-          mkdir -p app/assets
-          cp planner.html app/assets/planner.html
-          cp main.dart app/lib/main.dart
-
-      - name: Add native widget code
-        run: |
-          KT=app/android/app/src/main/kotlin/com/example/planner_app
-          RES=app/android/app/src/main/res
-          mkdir -p $KT $RES/layout $RES/drawable $RES/xml
-
-          cat > $KT/MainActivity.kt <<'KT1'
-          package com.example.planner_app
-
-          import android.appwidget.AppWidgetManager
-          import android.content.ComponentName
-          import android.content.Context
-          import android.content.Intent
-          import android.os.Bundle
-          import io.flutter.embedding.android.FlutterActivity
-          import io.flutter.embedding.engine.FlutterEngine
-          import io.flutter.plugin.common.MethodChannel
-
-          class MainActivity : FlutterActivity() {
-              private fun prefs() = getSharedPreferences("planner_native", Context.MODE_PRIVATE)
-
-              private fun mark(i: Intent?) {
-                  if (i?.action == "ADD") {
-                      prefs().edit().putBoolean("add", true).apply()
-                      i.action = null
-                  }
-              }
-
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)
-                  mark(intent)
-              }
-
-              override fun onNewIntent(intent: Intent) {
-                  super.onNewIntent(intent)
-                  mark(intent)
-              }
-
-              override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-                  super.configureFlutterEngine(flutterEngine)
-                  MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "planner/native")
-                      .setMethodCallHandler { call, result ->
-                          val p = prefs()
-                          when (call.method) {
-                              "setTasks" -> {
-                                  p.edit().putString("tasks", call.arguments as String).apply()
-                                  val m = AppWidgetManager.getInstance(this)
-                                  val ids = m.getAppWidgetIds(ComponentName(this, TaskWidgetProvider::class.java))
-                                  m.notifyAppWidgetViewDataChanged(ids, R.id.list)
-                                  result.success(null)
-                              }
-                              "takePending" -> {
-                                  val s = p.getString("pending", "[]")
-                                  p.edit().putString("pending", "[]").apply()
-                                  result.success(s)
-                              }
-                              "takeAdd" -> {
-                                  val a = p.getBoolean("add", false)
-                                  p.edit().putBoolean("add", false).apply()
-                                  result.success(a)
-                              }
-                              else -> result.notImplemented()
-                          }
-                      }
-              }
-          }
-          KT1
-
-          cat > $KT/TaskWidgetProvider.kt <<'KT2'
-          package com.example.planner_app
-
-          import android.app.PendingIntent
-          import android.appwidget.AppWidgetManager
-          import android.appwidget.AppWidgetProvider
-          import android.content.ComponentName
-          import android.content.Context
-          import android.content.Intent
-          import android.widget.RemoteViews
-          import org.json.JSONArray
-
-          class TaskWidgetProvider : AppWidgetProvider() {
-              override fun onUpdate(ctx: Context, m: AppWidgetManager, ids: IntArray) {
-                  for (id in ids) {
-                      val rv = RemoteViews(ctx.packageName, R.layout.widget)
-                      rv.setRemoteAdapter(R.id.list, Intent(ctx, TaskWidgetService::class.java))
-                      rv.setEmptyView(R.id.list, R.id.empty)
-                      val add = Intent(ctx, MainActivity::class.java).setAction("ADD")
-                          .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                      rv.setOnClickPendingIntent(R.id.add, PendingIntent.getActivity(
-                          ctx, 0, add, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
-                      val open = Intent(ctx, MainActivity::class.java)
-                          .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                      rv.setOnClickPendingIntent(R.id.head, PendingIntent.getActivity(
-                          ctx, 2, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
-                      val tpl = Intent(ctx, TaskWidgetProvider::class.java).setAction("DONE")
-                      rv.setPendingIntentTemplate(R.id.list, PendingIntent.getBroadcast(
-                          ctx, 1, tpl, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE))
-                      m.updateAppWidget(id, rv)
-                  }
-              }
-
-              override fun onReceive(ctx: Context, intent: Intent) {
-                  super.onReceive(ctx, intent)
-                  if (intent.action == "DONE") {
-                      val tid = intent.getStringExtra("id") ?: return
-                      val p = ctx.getSharedPreferences("planner_native", Context.MODE_PRIVATE)
-                      val old = JSONArray(p.getString("tasks", "[]"))
-                      val keep = JSONArray()
-                      for (i in 0 until old.length()) {
-                          val o = old.getJSONObject(i)
-                          if (o.getString("id") != tid) keep.put(o)
-                      }
-                      val pend = JSONArray(p.getString("pending", "[]"))
-                      pend.put(tid)
-                      p.edit().putString("tasks", keep.toString()).putString("pending", pend.toString()).apply()
-                      val m = AppWidgetManager.getInstance(ctx)
-                      m.notifyAppWidgetViewDataChanged(
-                          m.getAppWidgetIds(ComponentName(ctx, TaskWidgetProvider::class.java)), R.id.list)
+              override fun onReceive(context: Context, intent: Intent) {
+                  super.onReceive(context, intent)
+                  if (intent.action == "PLANNER_DONE") {
+                      val id = intent.getStringExtra("task_id") ?: return
+                      val prefs = context.getSharedPreferences("planner_native", Context.MODE_PRIVATE)
+                      val pending = JSONArray(prefs.getString("pending", "[]") ?: "[]")
+                      pending.put(id)
+                      prefs.edit().putString("pending", pending.toString()).apply()
+                      val manager = AppWidgetManager.getInstance(context)
+                      val ids = manager.getAppWidgetIds(ComponentName(context, TaskWidgetProvider::class.java))
+                      manager.notifyAppWidgetViewDataChanged(ids, R.id.widget_list)
                   }
               }
           }
-          KT2
+          ''', encoding='utf-8')
 
-          cat > $KT/TaskWidgetService.kt <<'KT3'
-          package com.example.planner_app
+          (package_dir / 'TaskWidgetService.kt').write_text(r'''package com.planner.planner_app
 
           import android.content.Context
           import android.content.Intent
@@ -171,218 +24,92 @@ jobs:
 
           class TaskWidgetService : RemoteViewsService() {
               override fun onGetViewFactory(intent: Intent): RemoteViewsFactory = Factory(applicationContext)
-
-              class Factory(private val ctx: Context) : RemoteViewsFactory {
-                  private var items = JSONArray()
-
+              class Factory(private val context: Context) : RemoteViewsFactory {
+                  private var tasks = JSONArray()
                   private fun load() {
-                      items = JSONArray(ctx.getSharedPreferences("planner_native", Context.MODE_PRIVATE)
-                          .getString("tasks", "[]"))
+                      tasks = JSONArray(context.getSharedPreferences("planner_native", Context.MODE_PRIVATE).getString("tasks", "[]") ?: "[]")
                   }
-
-                  override fun onCreate() { load() }
-                  override fun onDataSetChanged() { load() }
+                  override fun onCreate() = load()
+                  override fun onDataSetChanged() = load()
                   override fun onDestroy() {}
-                  override fun getCount(): Int = items.length()
-
-                  override fun getViewAt(i: Int): RemoteViews {
-                      val o = items.getJSONObject(i)
-                      val rv = RemoteViews(ctx.packageName, R.layout.widget_item)
-                      rv.setTextViewText(R.id.title, o.getString("title"))
-                      rv.setTextViewText(R.id.time, o.optString("time", ""))
-                      rv.setOnClickFillInIntent(R.id.row, Intent().putExtra("id", o.getString("id")))
-                      return rv
+                  override fun getCount() = tasks.length()
+                  override fun getViewAt(position: Int): RemoteViews {
+                      val task = tasks.getJSONObject(position)
+                      val row = RemoteViews(context.packageName, R.layout.planner_widget_item)
+                      row.setTextViewText(R.id.widget_task_title, task.optString("title"))
+                      row.setTextViewText(R.id.widget_task_time, task.optString("time"))
+                      row.setOnClickFillInIntent(R.id.widget_task_row, Intent().putExtra("task_id", task.optString("id")))
+                      return row
                   }
-
                   override fun getLoadingView(): RemoteViews? = null
-                  override fun getViewTypeCount(): Int = 1
-                  override fun getItemId(i: Int): Long = i.toLong()
-                  override fun hasStableIds(): Boolean = false
+                  override fun getViewTypeCount() = 1
+                  override fun getItemId(position: Int) = position.toLong()
+                  override fun hasStableIds() = false
               }
           }
-          KT3
+          ''', encoding='utf-8')
 
-          cat > $RES/layout/widget.xml <<'X1'
-          <?xml version="1.0" encoding="utf-8"?>
-          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:padding="12dp"
-              android:background="@drawable/widget_bg">
-              <RelativeLayout
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_marginBottom="6dp">
-                  <TextView
-                      android:id="@+id/head"
-                      android:layout_width="wrap_content"
-                      android:layout_height="36dp"
-                      android:gravity="center_vertical"
-                      android:text="کارهای امروز"
-                      android:textColor="#FFFFFF"
-                      android:textSize="16sp"
-                      android:textStyle="bold"/>
-                  <TextView
-                      android:id="@+id/add"
-                      android:layout_width="36dp"
-                      android:layout_height="36dp"
-                      android:layout_alignParentEnd="true"
-                      android:gravity="center"
-                      android:text="+"
-                      android:textColor="#FFFFFF"
-                      android:textSize="24sp"
-                      android:background="@drawable/add_bg"/>
-              </RelativeLayout>
-              <FrameLayout
-                  android:layout_width="match_parent"
-                  android:layout_height="match_parent">
-                  <ListView
-                      android:id="@+id/list"
-                      android:layout_width="match_parent"
-                      android:layout_height="match_parent"
-                      android:divider="@null"
-                      android:dividerHeight="0dp"/>
-                  <TextView
-                      android:id="@+id/empty"
-                      android:layout_width="match_parent"
-                      android:layout_height="match_parent"
-                      android:gravity="center"
-                      android:text="کاری برای انجام نیست"
-                      android:textColor="#AAB4C8"
-                      android:textSize="14sp"/>
-              </FrameLayout>
-          </LinearLayout>
-          X1
+          res = root / 'android/app/src/main/res'
+          (res / 'layout').mkdir(parents=True, exist_ok=True)
+          (res / 'drawable').mkdir(parents=True, exist_ok=True)
+          (res / 'xml').mkdir(parents=True, exist_ok=True)
+          (res / 'layout/planner_widget.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="12dp" android:background="@drawable/planner_widget_bg">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+              <TextView android:id="@+id/widget_title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="کارهای پلنر" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
+              <TextView android:id="@+id/widget_add" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="+" android:textColor="#FFFFFF" android:textSize="24sp" android:background="@drawable/planner_widget_add" />
+            </LinearLayout>
+            <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+              <ListView android:id="@+id/widget_list" android:layout_width="match_parent" android:layout_height="match_parent" android:divider="#33445566" android:dividerHeight="1dp" />
+              <TextView android:id="@+id/widget_empty" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="کاری برای نمایش نیست" android:textColor="#AAB4C8" />
+            </FrameLayout>
+          </LinearLayout>''', encoding='utf-8')
+          (res / 'layout/planner_widget_item.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_task_row" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:paddingVertical="8dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="○" android:textColor="#65B5FF" android:textSize="22sp" />
+            <TextView android:id="@+id/widget_task_title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="10dp" android:maxLines="1" android:ellipsize="end" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/widget_task_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:textColor="#AAB4C8" android:textSize="12sp" />
+          </LinearLayout>''', encoding='utf-8')
+          (res / 'drawable/planner_widget_bg.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="#E6141C28"/><corners android:radius="22dp"/></shape>''', encoding='utf-8')
+          (res / 'drawable/planner_widget_add.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval"><solid android:color="#4AA3F0"/></shape>''', encoding='utf-8')
+          (res / 'xml/planner_widget_info.xml').write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android" android:minWidth="240dp" android:minHeight="160dp" android:updatePeriodMillis="0" android:initialLayout="@layout/planner_widget" android:resizeMode="horizontal|vertical" android:widgetCategory="home_screen" />''', encoding='utf-8')
 
-          cat > $RES/layout/widget_item.xml <<'X2'
-          <?xml version="1.0" encoding="utf-8"?>
-          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/row"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="horizontal"
-              android:gravity="center_vertical"
-              android:paddingTop="8dp"
-              android:paddingBottom="8dp">
-              <TextView
-                  android:id="@+id/check"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:text="○"
-                  android:textColor="#4AA3F0"
-                  android:textSize="24sp"/>
-              <TextView
-                  android:id="@+id/title"
-                  android:layout_width="0dp"
-                  android:layout_height="wrap_content"
-                  android:layout_weight="1"
-                  android:layout_marginStart="10dp"
-                  android:maxLines="1"
-                  android:ellipsize="end"
-                  android:textColor="#FFFFFF"
-                  android:textSize="15sp"/>
-              <TextView
-                  android:id="@+id/time"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:layout_marginStart="8dp"
-                  android:textColor="#AAB4C8"
-                  android:textSize="12sp"/>
-          </LinearLayout>
-          X2
-
-          cat > $RES/drawable/widget_bg.xml <<'X3'
-          <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <solid android:color="#E6141C28"/>
-              <corners android:radius="24dp"/>
-          </shape>
-          X3
-
-          cat > $RES/drawable/add_bg.xml <<'X4'
-          <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-              <solid android:color="#4AA3F0"/>
-          </shape>
-          X4
-
-          cat > $RES/xml/task_widget_info.xml <<'X5'
-          <?xml version="1.0" encoding="utf-8"?>
-          <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-              android:minWidth="250dp"
-              android:minHeight="180dp"
-              android:updatePeriodMillis="0"
-              android:initialLayout="@layout/widget"
-              android:resizeMode="horizontal|vertical"
-              android:widgetCategory="home_screen"/>
-          X5
-
-      - name: Configure project (assets, gradle, manifest)
-        run: |
-          python3 - <<'EOF'
-          import os, re
-
-          # 1) pubspec: register the html asset
-          p = 'app/pubspec.yaml'
-          s = open(p, encoding='utf-8').read()
-          s = s.replace('uses-material-design: true',
-                        'uses-material-design: true\n  assets:\n    - assets/planner.html', 1)
-          assert 'assets/planner.html' in s
-          open(p, 'w', encoding='utf-8').write(s)
-
-          # 2) gradle: core library desugaring (needed by notifications)
-          kts = os.path.exists('app/android/app/build.gradle.kts')
-          p = 'app/android/app/build.gradle.kts' if kts else 'app/android/app/build.gradle'
-          s = open(p, encoding='utf-8').read()
-          if kts:
-              s = s.replace('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true', 1)
-              s += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n'
-          else:
-              s = s.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
-              s += "\ndependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'\n}\n"
-          assert 'esugaring' in s
-          open(p, 'w', encoding='utf-8').write(s)
-
-          # 3) manifest: permissions, notification receivers, widget, app name
-          p = 'app/android/app/src/main/AndroidManifest.xml'
-          m = open(p, encoding='utf-8').read()
-          perm = ('<uses-permission android:name="android.permission.INTERNET"/>\n'
-                  '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
-                  '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n'
-                  '    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\n'
-                  '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32"/>\n'
-                  '    ')
-          rec = ('    <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>\n'
-                 '        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">\n'
-                 '            <intent-filter>\n'
-                 '                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n'
-                 '                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>\n'
-                 '                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>\n'
-                 '                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>\n'
-                 '            </intent-filter>\n'
-                 '        </receiver>\n'
-                 '        <receiver android:name=".TaskWidgetProvider" android:exported="true">\n'
-                 '            <intent-filter>\n'
-                 '                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>\n'
-                 '            </intent-filter>\n'
-                 '            <meta-data android:name="android.appwidget.provider" android:resource="@xml/task_widget_info"/>\n'
-                 '        </receiver>\n'
-                 '        <service android:name=".TaskWidgetService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false"/>\n'
-                 '    ')
-          m = m.replace('<application', perm + '<application', 1)
-          m = m.replace('</application>', rec + '</application>', 1)
+          manifest = root / 'android/app/src/main/AndroidManifest.xml'
+          m = manifest.read_text(encoding='utf-8')
+          permissions = '''\n    <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />'''
+          m = m.replace('<application', permissions + '\n    <application', 1)
+          receivers = '''
+                  <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" android:exported="false" />
+                  <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver" android:exported="false">
+                      <intent-filter>
+                          <action android:name="android.intent.action.BOOT_COMPLETED" />
+                          <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                          <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                      </intent-filter>
+                  </receiver>
+                  <receiver android:name=".TaskWidgetProvider" android:exported="true">
+                      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+                      <meta-data android:name="android.appwidget.provider" android:resource="@xml/planner_widget_info" />
+                  </receiver>
+                  <service android:name=".TaskWidgetService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false" />
+          '''
+          m = m.replace('</application>', receivers + '\n</application>', 1)
           m = re.sub(r'android:label="[^"]*"', 'android:label="پلنر"', m, count=1)
-          assert 'ScheduledNotificationReceiver' in m and 'TaskWidgetProvider' in m
-          open(p, 'w', encoding='utf-8').write(m)
-          EOF
+          manifest.write_text(m, encoding='utf-8')
+          PY
 
       - name: Build release APK
         working-directory: app
         run: flutter build apk --release --target-platform android-arm64
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: planner-apk
           path: app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
