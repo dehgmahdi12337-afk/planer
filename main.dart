@@ -19,7 +19,14 @@ final FlutterLocalNotificationsPlugin _notifications =
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tzdata.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Etc/UTC'));
+  try {
+    final deviceZone = await _native.invokeMethod<String>('getTimeZone');
+    if (deviceZone != null && deviceZone.isNotEmpty) {
+      tz.setLocalLocation(tz.getLocation(deviceZone));
+    }
+  } catch (_) {
+    tz.setLocalLocation(tz.local);
+  }
   await _notifications.initialize(
     const InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
@@ -276,6 +283,17 @@ class _PlannerWebViewState extends State<PlannerWebView>
 
   Future<void> _writeBackup(String payload, {required bool automatic}) async {
     try {
+      // Automatic backups are weekly; manual backups always run immediately.
+      final docs = await getApplicationDocumentsDirectory();
+      final lastAutoFile = File('${docs.path}/last-auto-backup.txt');
+      if (automatic && await lastAutoFile.exists()) {
+        final raw = (await lastAutoFile.readAsString()).trim();
+        final previous = DateTime.tryParse(raw);
+        if (previous != null &&
+            DateTime.now().difference(previous) < const Duration(days: 7)) {
+          return;
+        }
+      }
       final dirPath = _backupDirectory ?? (await _defaultBackupDirectory()).path;
       final dir = Directory(dirPath);
       if (!await dir.exists()) await dir.create(recursive: true);
@@ -283,6 +301,9 @@ class _PlannerWebViewState extends State<PlannerWebView>
       final file = File('${dir.path}/planner-$stamp.json');
       await file.writeAsString(payload, flush: true);
       _lastBackup = DateTime.now();
+      if (automatic) {
+        await lastAutoFile.writeAsString(_lastBackup!.toIso8601String(), flush: true);
+      }
       // Keep the most recent 20 backups to avoid unbounded growth.
       final files = <File>[];
       await for (final entity in dir.list()) {
