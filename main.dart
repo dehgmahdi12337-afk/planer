@@ -198,6 +198,13 @@ class _PlannerWebViewState extends State<PlannerWebView>
         AndroidFlutterLocalNotificationsPlugin>();
     _notificationPermission =
         await android?.requestNotificationsPermission() ?? false;
+    try {
+      final exactAllowed =
+          await _native.invokeMethod<bool>('canScheduleExactAlarms') ?? true;
+      if (!exactAllowed) {
+        await _native.invokeMethod<void>('openExactAlarmSettings');
+      }
+    } catch (_) {}
     await _refreshBridgeState();
   }
 
@@ -227,6 +234,14 @@ class _PlannerWebViewState extends State<PlannerWebView>
     return hash == 0 || hash == _timerNotificationId ? hash + 1 : hash;
   }
 
+  Future<bool> _exactAlarmsAllowed() async {
+    try {
+      return await _native.invokeMethod<bool>('canScheduleExactAlarms') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _scheduleNotification(
     int id,
     String title,
@@ -251,7 +266,9 @@ class _PlannerWebViewState extends State<PlannerWebView>
           priority: Priority.high,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: await _exactAlarmsAllowed()
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );
