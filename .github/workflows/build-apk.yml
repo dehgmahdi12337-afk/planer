@@ -28,18 +28,22 @@ jobs:
           cache: true
 
       - name: Check release signing secrets
+        id: signing
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          test -n "$KEYSTORE_BASE64" || { echo "::error::Missing secret ANDROID_KEYSTORE_BASE64"; exit 1; }
-          test -n "$KEYSTORE_PASSWORD" || { echo "::error::Missing secret ANDROID_KEYSTORE_PASSWORD"; exit 1; }
-          test -n "$KEY_ALIAS" || { echo "::error::Missing secret ANDROID_KEY_ALIAS"; exit 1; }
-          test -n "$KEY_PASSWORD" || { echo "::error::Missing secret ANDROID_KEY_PASSWORD"; exit 1; }
-          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
-          test -s "$RUNNER_TEMP/upload-keystore.jks"
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
+            test -s "$RUNNER_TEMP/upload-keystore.jks"
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "Release signing is configured."
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Signing secrets are incomplete; building a DEBUG test APK instead of a release APK."
+          fi
 
       - name: Create Flutter project
         run: flutter create --org ir.dehgmahdi --project-name planner --platforms=android app
@@ -65,6 +69,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          SIGNING_READY: ${{ steps.signing.outputs.ready }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -95,10 +100,12 @@ jobs:
           g = re.sub(r'applicationId = "[^"]+"', 'applicationId = "ir.dehgmahdi.planner"', g, count=1)
           g = re.sub(r"minSdk = flutter.minSdkVersion", "minSdk = 23", g, count=1)
           g = re.sub(r"targetSdk = flutter.targetSdkVersion", "targetSdk = 36", g, count=1)
-          if "signingConfigs {" not in g:
-              g = g.replace(
-                  "    buildTypes {",
-                  """    signingConfigs {
+          import os
+          if os.environ.get("SIGNING_READY") == "true":
+              if "signingConfigs {" not in g:
+                  g = g.replace(
+                      "    buildTypes {",
+                      """    signingConfigs {
                   create("release") {
                       storeFile = file(System.getenv("ANDROID_KEYSTORE_PATH"))
                       storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
@@ -108,18 +115,18 @@ jobs:
               }
 
               buildTypes {""",
-                  1,
+                      1,
+                  )
+              g = re.sub(
+                  r'getByName\("release"\)\s*\{[^}]*\}',
+                  'getByName("release") { signingConfig = signingConfigs.getByName("release") }',
+                  g,
+                  count=1,
               )
-          g = re.sub(
-              r'getByName\("release"\)\s*\{[^}]*\}',
-              'getByName("release") { signingConfig = signingConfigs.getByName("release") }',
-              g,
-              count=1,
-          )
-          g = g.replace(
-              'signingConfig = signingConfigs.getByName("debug")',
-              'signingConfig = signingConfigs.getByName("release")',
-          )
+              g = g.replace(
+                  'signingConfig = signingConfigs.getByName("debug")',
+                  'signingConfig = signingConfigs.getByName("release")',
+              )
           g = g.replace(
               "compileOptions {",
               "compileOptions {\n        isCoreLibraryDesugaringEnabled = true",
@@ -189,7 +196,8 @@ jobs:
           p.write_text(m, encoding="utf-8")
           PY
 
-      - name: Build signed APK
+      - name: Build signed release APK
+        if: steps.signing.outputs.ready == 'true'
         working-directory: app
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload-keystore.jks
@@ -198,9 +206,23 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build apk --release
 
-      - name: Upload APK artifact
+      - name: Build unsigned-identity debug test APK
+        if: steps.signing.outputs.ready != 'true'
+        working-directory: app
+        run: flutter build apk --debug
+
+      - name: Upload signed release APK
+        if: steps.signing.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: planner-apk
+          name: planner-apk-release
           path: app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+      - name: Upload debug test APK
+        if: steps.signing.outputs.ready != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: planner-apk-debug-test
+          path: app/build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
