@@ -39,6 +39,10 @@ class MainActivity : FlutterActivity() {
                     prefs.edit().putBoolean("add_pending", false).apply()
                     result.success(value)
                 }
+                "canScheduleExactAlarms" -> {
+                    result.success(Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                        getSystemService(android.app.AlarmManager::class.java).canScheduleExactAlarms())
+                }
                 "openExactAlarmSettings" -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
