@@ -212,7 +212,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build apk --release
 
-      - name: Build unsigned-identity debug test APK
+      - name: Build debug test APK (debug signing)
         if: steps.signing.outputs.ready != 'true'
         working-directory: app
         run: flutter build apk --debug
