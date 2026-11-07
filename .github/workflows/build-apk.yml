@@ -138,14 +138,19 @@ jobs:
 
           manifest = Path("android/app/src/main/AndroidManifest.xml")
           m = manifest.read_text(encoding="utf-8")
-          permissions = """
-              <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-              <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-              <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-          """
-          if "android.permission.INTERNET" not in m:
-              m = m.replace("<application", permissions + "\n    <application", 1)
+          required_permissions = [
+              "android.permission.INTERNET",
+              "android.permission.POST_NOTIFICATIONS",
+              "android.permission.RECEIVE_BOOT_COMPLETED",
+              "android.permission.SCHEDULE_EXACT_ALARM",
+          ]
+          for permission in required_permissions:
+              if f'android:name="{permission}"' not in m:
+                  m = m.replace(
+                      "<application",
+                      f'    <uses-permission android:name="{permission}" />\\n    <application',
+                      1,
+                  )
           receivers = """
                   <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
                   <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
