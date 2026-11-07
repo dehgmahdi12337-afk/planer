@@ -142,6 +142,7 @@ jobs:
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
               <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+              <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
           """
           if "android.permission.INTERNET" not in m:
               m = m.replace("<application", permissions + "\n    <application", 1)
