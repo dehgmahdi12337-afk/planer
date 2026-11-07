@@ -1,9 +1,12 @@
-name: Build Android releases
+name: Build Planner APK
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, master]
+    branches: [main, master, planner-kotlin-rebuild]
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -31,10 +34,10 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Missing secret ANDROID_KEYSTORE_BASE64"; exit 1; fi
-          if [ -z "$KEYSTORE_PASSWORD" ]; then echo "::error::Missing secret ANDROID_KEYSTORE_PASSWORD"; exit 1; fi
-          if [ -z "$KEY_ALIAS" ]; then echo "::error::Missing secret ANDROID_KEY_ALIAS"; exit 1; fi
-          if [ -z "$KEY_PASSWORD" ]; then echo "::error::Missing secret ANDROID_KEY_PASSWORD"; exit 1; fi
+          test -n "$KEYSTORE_BASE64" || { echo "::error::Missing secret ANDROID_KEYSTORE_BASE64"; exit 1; }
+          test -n "$KEYSTORE_PASSWORD" || { echo "::error::Missing secret ANDROID_KEYSTORE_PASSWORD"; exit 1; }
+          test -n "$KEY_ALIAS" || { echo "::error::Missing secret ANDROID_KEY_ALIAS"; exit 1; }
+          test -n "$KEY_PASSWORD" || { echo "::error::Missing secret ANDROID_KEY_PASSWORD"; exit 1; }
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
           test -s "$RUNNER_TEMP/upload-keystore.jks"
 
@@ -47,16 +50,13 @@ jobs:
           flutter pub add webview_flutter flutter_local_notifications:^17.2.4 timezone file_picker:11.0.3 path_provider
           flutter pub add --dev flutter_launcher_icons
 
-      - name: Copy app files and icon
+      - name: Prepare app files and launcher icon
         run: |
           mkdir -p app/assets
           cp planner.html app/assets/planner.html
           cp main.dart app/lib/main.dart
-          if [ -f assets/app_icon.png ]; then
-            cp assets/app_icon.png app/assets/app_icon.png
-          else
-            echo "::warning::assets/app_icon.png is not in the repository yet; Flutter's default launcher icon will be used."
-          fi
+          python3 -m pip install --quiet cairosvg
+          cairosvg assets/app_icon.svg --output app/assets/app_icon.png
 
       - name: Configure Android app
         working-directory: app
@@ -77,8 +77,7 @@ jobs:
               "uses-material-design: true\n  assets:\n    - assets/planner.html",
               1,
           )
-          if Path("assets/app_icon.png").exists():
-              text += """
+          text += """
           flutter_launcher_icons:
             android: true
             ios: false
@@ -93,7 +92,7 @@ jobs:
               raise SystemExit("Expected Android Kotlin Gradle file was not generated.")
           g = gradle.read_text(encoding="utf-8")
           g = g.replace("compileSdk = flutter.compileSdkVersion", "compileSdk = 36")
-          g = re.sub(r"applicationId = \"[^\"]+\"", 'applicationId = "ir.dehgmahdi.planner"', g, count=1)
+          g = re.sub(r'applicationId = "[^"]+"', 'applicationId = "ir.dehgmahdi.planner"', g, count=1)
           g = re.sub(r"minSdk = flutter.minSdkVersion", "minSdk = 23", g, count=1)
           g = re.sub(r"targetSdk = flutter.targetSdkVersion", "targetSdk = 36", g, count=1)
           if "signingConfigs {" not in g:
@@ -155,9 +154,7 @@ jobs:
           m = re.sub(r'android:label="[^"]*"', 'android:label="پلنر"', m, count=1)
           manifest.write_text(m, encoding="utf-8")
           PY
-          if [ -f assets/app_icon.png ]; then
-            dart run flutter_launcher_icons
-          fi
+          dart run flutter_launcher_icons
           flutter pub get
 
       - name: Build signed APK
@@ -169,20 +166,9 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build apk --release
 
-      - name: Build signed Android App Bundle
-        working-directory: app
-        env:
-          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload-keystore.jks
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build appbundle --release
-
-      - name: Upload APK and AAB
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: planner-android-release
-          path: |
-            app/build/app/outputs/flutter-apk/app-release.apk
-            app/build/app/outputs/bundle/release/app-release.aab
+          name: planner-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
