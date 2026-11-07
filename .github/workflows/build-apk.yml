@@ -157,6 +157,38 @@ jobs:
           dart run flutter_launcher_icons
           flutter pub get
 
+      - name: Install native Android widget integration
+        working-directory: app
+        run: |
+          PKG_DIR="android/app/src/main/kotlin/ir/dehgmahdi/planner"
+          mkdir -p "$PKG_DIR" android/app/src/main/res/layout android/app/src/main/res/xml
+          cp ../android-native/MainActivity.kt "$PKG_DIR/MainActivity.kt"
+          cp ../android-native/PlannerWidgetProvider.kt "$PKG_DIR/PlannerWidgetProvider.kt"
+          cp ../android-native/planner_widget.xml android/app/src/main/res/layout/planner_widget.xml
+          cp ../android-native/planner_widget_info.xml android/app/src/main/res/xml/planner_widget_info.xml
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          m = p.read_text(encoding="utf-8")
+          receiver = """
+                  <receiver
+                      android:name="ir.dehgmahdi.planner.PlannerWidgetProvider"
+                      android:exported="false">
+                      <intent-filter>
+                          <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                      </intent-filter>
+                      <meta-data android:name="android.appwidget.provider"
+                          android:resource="@xml/planner_widget_info" />
+                  </receiver>
+                  <receiver
+                      android:name="ir.dehgmahdi.planner.PlannerWidgetActionReceiver"
+                      android:exported="false" />
+          """
+          if "PlannerWidgetProvider" not in m:
+              m = m.replace("</application>", receiver + "\\n</application>", 1)
+          p.write_text(m, encoding="utf-8")
+          PY
+
       - name: Build signed APK
         working-directory: app
         env:
