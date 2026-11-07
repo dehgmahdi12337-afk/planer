@@ -185,7 +185,7 @@ jobs:
                       android:exported="false" />
           """
           if "PlannerWidgetProvider" not in m:
-              m = m.replace("</application>", receiver + "\\n</application>", 1)
+              m = m.replace("</application>", receiver + "\n</application>", 1)
           p.write_text(m, encoding="utf-8")
           PY
 
