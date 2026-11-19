@@ -239,7 +239,7 @@ function statsView(){const wk=SP.mode==='w',td=TD(),days=periodDays(),j=jp(days[
 let NOTE=null,NOTE_FILTER='all',NOTE_LAYOUT='grid',noteSaveTimer=null;
 const noteById=id=>(S.notes||[]).find(n=>n.id===id);
 function notesView(){
- const notes=(S.notes||[]).filter(n=>NOTE_FILTER==='trash'?!!n.trashedAt:NOTE_FILTER==='archive'?!!n.archived&&!n.trashedAt:!n.archived&&!n.trashedAt);
+ const notes=(S.notes||[]).filter(n=>NOTE_FILTER==='trash'?!!n.trashedAt:NOTE_FILTER==='archive'?!!n.archived&&!n.trashedAt:NOTE_FILTER==='pinned'?!n.archived&&!n.trashedAt&&!!n.pinned:!n.archived&&!n.trashedAt);
  const q=(document.getElementById('noteSearch')?.value||'').trim().toLocaleLowerCase();
  const filtered=notes.filter(n=>!q||(n.title+' '+n.body+' '+(n.folder||'')+' '+(n.tags||[]).join(' ')).toLocaleLowerCase().includes(q));
  filtered.sort((a,b)=>(b.pinned-a.pinned)||(b.updated||0)-(a.updated||0));
@@ -263,6 +263,7 @@ function drawNoteEditor(){
  <div class="rw" style="margin-top:14px"><button class="ch" data-a="npin">${n.pinned?'برداشتن سنجاق':'سنجاق کردن'}</button><button class="ch" data-a="narchive">انتقال به آرشیو</button><button class="ch" data-a="nconvert">تبدیل چک‌لیست به کار</button><button class="ch" data-a="ntrash">انتقال به زباله‌دان</button></div>
  <div class="note" style="margin-top:10px">ذخیره خودکار فعال است · یادداشت‌ها روی همین دستگاه ذخیره می‌شوند.</div>`;
 }
+document.addEventListener('input',e=>{if(e.target.id==='noteSearch'){const q=e.target.value.toLocaleLowerCase();document.querySelectorAll('.note-card').forEach(card=>{card.style.display=card.innerText.toLocaleLowerCase().includes(q)?'':'none'})}});
 function saveNoteDraft(){
  if(!NOTE||!$('noteEditor'))return;
  NOTE.title=$('noteTitle')?.value||'';
@@ -402,7 +403,7 @@ const exportState=()=>({app:'planner',v:3,t:Date.now(),tasks:S.tasks,R:S.R,notes
 let st;function syncSoon(){clearTimeout(st);st=setTimeout(sync,600)}
 function sync(){if(!NA)return;try{NA.sync(JSON.stringify({state:JSON.stringify(exportState()),alarms:alarmsList(),widget:widgetList(),dark:document.documentElement.classList.contains('dk')}))}catch(e){}}
 function restoreText(text){let o;try{o=JSON.parse(text)}catch(e){return toast('فایل پشتیبان معتبر نیست (JSON خراب)')}
- let n;if(o&&o.app==='planner'&&o.v===3&&Array.isArray(o.tasks)&&o.R&&typeof o.R==='object'){if(o.tasks.some(t=>!t||!t.id||!t.title||!['d','w','m'].includes(t.type)))return toast('فایل پشتیبان ناقص است');n={tasks:o.tasks,R:o.R,theme:o.theme||'',accent:o.accent||''}}
+ let n;if(o&&o.app==='planner'&&o.v===3&&Array.isArray(o.tasks)&&o.R&&typeof o.R==='object'){if(o.tasks.some(t=>!t||!t.id||!t.title||!['d','w','m'].includes(t.type)))return toast('فایل پشتیبان ناقص است');n={tasks:o.tasks,R:o.R,notes:Array.isArray(o.notes)?o.notes:[],theme:o.theme||'',accent:o.accent||''}}
  else if(o&&(Array.isArray(o)||Array.isArray(o.tasks))){n=migrate(o);n.theme=o.theme||'';n.accent=''}else return toast('این فایل مربوط به Planner نیست');
  const d=o.t?new Date(o.t).toLocaleString('fa-IR',{dateStyle:'medium',timeStyle:'short'}):'نامشخص';
  ask('بازیابی اطلاعات',`فایل شامل ${fs(n.tasks.length)} کار است (تاریخ تهیه: ${d}). اطلاعات فعلی با این فایل جایگزین می‌شه. ادامه بدم؟`,'بازیابی',()=>{try{localStorage.setItem('planner3_prev',JSON.stringify(S))}catch(e){}S.tasks=n.tasks;S.R=n.R;S.notes=n.notes||[];S.theme=n.theme;S.accent=n.accent||S.accent;S.tm=null;save();applyTheme();render();toast('اطلاعات بازیابی شد')})}
