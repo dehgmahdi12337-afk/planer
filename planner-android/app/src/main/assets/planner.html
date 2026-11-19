@@ -165,7 +165,7 @@ function migrate(o){const tasks=[],R={};
  return{tasks,R}}
 function load(){let r=null;try{r=JSON.parse(localStorage.getItem('planner3'))}catch(e){}
  if(r&&r.v===3)S=Object.assign(S,r);
- else for(const k of['planner-v2','planner-v1']){try{const o=JSON.parse(localStorage.getItem(k));if(o){Object.assign(S,migrate(o));if(o.theme)S.theme=o.theme;break}}catch(e){}}S.notes=S.notes||[]}
+ else for(const k of['planner-v2','planner-v1']){try{const o=JSON.parse(localStorage.getItem(k));if(o){Object.assign(S,migrate(o));if(o.theme)S.theme=o.theme;break}}catch(e){}}S.notes=(S.notes||[]).filter(n=>!n.trashedAt||Date.now()-n.trashedAt<30*86400000)}
 function save(){try{localStorage.setItem('planner3',JSON.stringify(S))}catch(e){}syncSoon()}
 /* ---------- occurrences ---------- */
 function occ(D){const out=[];S.tasks.forEach(t=>{
