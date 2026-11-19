@@ -189,7 +189,7 @@ function rowH(it){const t=it.t,r=rec(t,it.k),meta=[{d:'روزانه',w:'هفتگ
  if(t.time)meta.push(ic('clock',12)+' '+fs(t.time));if(t.est&&!(r&&r.a))meta.push((t.type==='d'?'هدف ':'تخمین ')+fm(t.est));
  const nl=t.note?t.note.split('\n').filter(x=>x.trim()).length:0;if(nl)meta.push(ic('note',12)+' '+fs(nl)+' بند');
  return `<div class="t g${it.d?' d':''}" style="--pc:${PC[t.pri]}"><button class="cb${it.d?' on':''}" data-a="cb" data-t="${t.id}" data-k="${it.k}"${lockedKey(it.k)?' disabled':''}>${it.d?ic('check',17):''}</button><div class="n" data-a="edit" data-id="${t.id}"><b>${esc(t.title)}</b><small>${meta.join(' · ')}</small>${it.d&&r&&r.a&&t.est?cmp(t.est,r.a):''}</div></div>`}
-function daysView(){const td=TD(),isT=DAY===td;let strip='';for(let i=0;i<14;i++){const D=addD(td,i),n=dayItems(D).length;strip+=`<button class="dc${D===DAY?' on':''}" data-a="day" data-v="${D}"><small>${i?WL[dow(D)]:'امروز'}</small><b>${fs(jp(D).d)}</b><i${n?'':' style="opacity:0"'}></i></button>`}
+function daysView(){const td=TD(),isT=DAY===td;let strip='';for(let i=-7;i<7;i++){const D=addD(td,i),n=dayItems(D).length;strip+=`<button class="dc${D===DAY?' on':''}" data-a="day" data-v="${D}"><small>${i?WL[dow(D)]:'امروز'}</small><b>${fs(jp(D).d)}</b><i${n?'':' style="opacity:0"'}></i></button>`}
  const its=dayItems(DAY),done=its.filter(i=>i.d).sort(srtDone),todo=its.filter(i=>!i.d).sort(srt),tot=its.length,dc=done.length,p=tot?dc/tot:0;
  const rel=isT?'امروز':DAY===addD(td,1)?'فردا':fs(Math.round((new Date(DAY+'T12:00:00')-new Date(td+'T12:00:00'))/864e5))+' روز بعد';
  let h=`<div class="note" style="font-weight:700;margin:0 3px 8px;color:var(--mut)">آینده‌ت رو خودت بنویس</div><div class="strip">${strip}</div><div class="g hero"><div class="hr1"><div><div class="wd">${WD[dow(DAY)]}</div><div class="jd">${jf(DAY)} ${fs(jp(DAY).y)} · ${rel}</div></div>${isT?`<div class="sc"><small>امتیاز</small><b>${fs(score())}</b></div>`:''}</div>${bar(p)}<div class="hr2"><span>${fs(dc)} انجام‌شده</span><span>${fs(tot-dc)} باقی‌مانده</span><b>${fs(Math.round(p*100))}٪</b></div></div>`;
@@ -289,13 +289,13 @@ const tfield=(p,v,pre)=>{const a=v?v.split(':'):['',''];return`<div class="tf"><
 const rt=p=>{const h=$(p+'h'),m=$(p+'m');if(!h||!m||h.value===''&&m.value==='')return'';let a=+en(h.value||'0'),b=+en(m.value||'0');if(a>=24)a=a===24?0:23;if(b>59)b=59;return z(a)+':'+z(b)};
 const stf=(p,v)=>{const a=v.split(':');$(p+'h').value=fs(a[0]);$(p+'m').value=fs(a[1])};
 /* ---------- task form ---------- */
-function openForm(id,type){const t=id&&task(id);F=t?JSON.parse(JSON.stringify(t)):{id:'',title:'',note:'',type:type||'d',days:[0,1,2,3,4,5,6],date:'',rep:false,pri:1,time:'',rem:0,est:0,wg:0,ps:[]};F.more=false;if(!t&&F.type!=='d'&&TAB==='days')F.date=DAY;layer('<div class="sh" id="fsh"></div>');drawForm()}
+function openForm(id,type){const t=id&&task(id);F=t?JSON.parse(JSON.stringify(t)):{id:'',title:'',note:'',type:type||'d',days:[0,1,2,3,4,5,6],date:'',rep:false,pri:1,time:'',rem:0,est:0,wg:0,ps:[]};F.more=false;F.descOpen=!!F.note;if(!t&&F.type!=='d'&&TAB==='days')F.date=DAY;layer('<div class="sh" id="fsh"></div>');drawForm()}
 function readForm(){if(!$('ft'))return;F.title=$('ft').value;F.note=$('fn').value;if($('f2h'))F.time=rt('f2');if($('fe')){const raw=en($('fe').value||'');if(raw)F.est=Math.min(+raw,1440)}}
 function drawForm(){const f=F,hasTime=f.type==='d'||f.date,sum=[['کم‌اهمیت','متوسط','خیلی مهم'][f.pri]];if(f.est)sum.push(fm(f.est));if(f.rem)sum.push('یادآوری '+fs(f.rem)+' دقیقه قبل');if(f.type==='d'&&f.days.length<7)sum.push(fs(f.days.length)+' روز در هفته');
  const timeRow=`<div class="fl">ساعت (اختیاری)</div><div class="rw">${tfield('f2',f.time,1)}<button class="ch" data-a="tnow" data-v="f2">همین الان</button><button class="ch" data-a="tclr" data-v="f2">پاک کردن</button></div>`;
  $('fsh').innerHTML=`<div class="grab"></div><h2>${f.id?'ویرایش کار':'کار جدید'}</h2>
 <div class="fl">عنوان</div><input class="in" id="ft" maxlength="80" placeholder="چی باید انجام بدی؟" value="${esc(f.title)}">
-<div class="fl">توضیحات (اختیاری)</div><textarea class="in" id="fn" placeholder="هر خط یک بند؛ با Enter شماره‌ی بعدی خودکار میاد">${esc(f.note)}</textarea><button class="ch" data-a="fnum" style="margin-top:8px">${ic('note',14)} شماره‌گذاری</button>
+<button class="ch" data-a="fdesc" style="margin-top:10px">${ic('note',14)} ${f.descOpen?'بستن توضیحات':'افزودن توضیحات'}</button>${f.descOpen?`<textarea class="in" id="fn" placeholder="توضیحات کار...">${esc(f.note)}</textarea><div class="rw" style="justify-content:flex-start;margin-top:5px"><button class="ch" data-a="fnum" title="شماره‌گذاری">${ic('note',15)}</button></div>`:''}
 <div class="fl">نوع کار</div><div class="rw">${[['d','روزانه (عادت)'],['w','هفتگی'],['m','ماهانه']].map(([k,l])=>`<button class="ch${f.type===k?' on':''}" data-a="ftype" data-v="${k}">${l}</button>`).join('')}</div>
 ${f.type==='d'?'':`<div class="fl">تاریخ (اختیاری)</div><div class="rw"><button class="ch${f.date?' on':''}" data-a="fdate">${ic('cal',15)} ${f.date?jf(f.date,true):'بدون تاریخ'}</button>${f.date?`<button class="ch" data-a="fnodate">حذف تاریخ</button>`:''}</div>`}
 ${hasTime?timeRow:''}
@@ -365,6 +365,7 @@ A.dpn=e=>{DP.first=+e.dataset.v>0?mfirst(addD(DP.first,32)):mfirst(addD(DP.first
 A.dpm=e=>{let m=jp(DP.first).m;const to=+e.dataset.v;while(m<to){DP.first=mfirst(addD(DP.first,32));m++}while(m>to){DP.first=mfirst(addD(DP.first,-1));m--}datePick()};
 A.dpd=e=>{F.date=e.dataset.v;if(!F.date){F.rep=false;F.time='';F.rem=0}closeL();drawForm()};
 A.tnow=e=>stf(e.dataset.v,nowHM());A.tclr=e=>{$(e.dataset.v+'h').value='';$(e.dataset.v+'m').value=''};
+A.fdesc=()=>{readForm();F.descOpen=!F.descOpen;drawForm()};
 A.fnum=()=>{const n=$('fn'),v=n.value;let last=0;v.split('\n').forEach(l=>{const m=en(l).match(/^(\d+)[.)]/);if(m)last=+m[1]});n.value=v+(v&&!v.endsWith('\n')?'\n':'')+fs(last+1)+'. ';n.focus()};
 A.fsave=()=>{readForm();const f=F;f.title=f.title.trim();if(!f.title){toast('عنوان کار رو بنویس');return}
  if(f.type==='d'&&!f.days.length){toast('حداقل یک روز انتخاب کن');return}
@@ -393,7 +394,8 @@ A.expc=()=>NA?NA.exportFile('planner-export-'+TD()+'.csv','text/csv',csv()):toas
 A.expj=()=>NA?NA.exportFile('planner-export-'+TD()+'.json','application/json',JSON.stringify(exportState())):toast('خروجی فایل فقط تو نسخه‌ی اندروید فعاله');
 document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('ov')&&!e.target.classList.contains('pgv')){e.target.remove();return}
  const t=e.target.closest('[data-a]');if(t&&A[t.dataset.a])A[t.dataset.a](t,e)});
-document.addEventListener('focusin',e=>{const p=e.target.dataset&&e.target.dataset.pre;if(p&&!rt(p))stf(p,nowHM())});
+document.addEventListener('focusin',e=>{const p=e.target.dataset&&e.target.dataset.pre;if(p&&!rt(p))stf(p,nowHM());if(e.target.classList.contains('tfi'))e.target.scrollIntoView({block:'nearest'})});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable)return;const ids=['ft','f2h','f2m','fe'];const idx=ids.indexOf(e.target.id);if(idx<0)return;const next=ids.slice(idx+1).find(id=>$(id));if(next){e.preventDefault();$(next).focus();$(next).scrollIntoView({block:'nearest'})}else if($('fn')){$('fn').focus()}else{e.preventDefault();document.querySelector('[data-a="fsave"]')?.focus()}});
 document.addEventListener('input',e=>{const t=e.target;if(t.classList.contains('tfi')){t.value=fs(en(t.value).replace(/\D/g,'').slice(0,2));if(AD&&$('ares')&&/^a[12]/.test(t.id))$('ares').innerHTML=actRes()}else if(t.id==='fe')t.value=fs(en(t.value).replace(/\D/g,'').slice(0,4))});
 document.addEventListener('beforeinput',e=>{const t=e.target;if(t.id!=='fn'||!/insertLineBreak|insertParagraph/.test(e.inputType))return;const v=t.value,p=t.selectionStart,line=v.slice(v.lastIndexOf('\n',p-1)+1,p),m=en(line).match(/^(\d+)[.)]\s/);if(m){e.preventDefault();t.setRangeText('\n'+fs(+m[1]+1)+'. ',p,p,'end')}});
 /* ---------- native bridge ---------- */
