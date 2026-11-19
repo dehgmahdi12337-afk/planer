@@ -127,8 +127,7 @@ class WidgetActionActivity : Activity() {
                 }
                 if (estimate > 0) {
                     p.edit().putString("widgetTime", JSONObject().put("id", id).put("key", key).toString()).apply()
-                    startActivity(Intent(this, MainActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+                    startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP))
                     finish()
                     return
                 }
