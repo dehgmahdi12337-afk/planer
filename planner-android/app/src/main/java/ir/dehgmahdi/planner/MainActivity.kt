@@ -100,7 +100,7 @@ class MainActivity : ComponentActivity() {
         web.overScrollMode = View.OVER_SCROLL_NEVER
         web.isLongClickable = false
         web.setOnLongClickListener { true }
-        web.setBackgroundColor(Color.parseColor("#F5F7FA"))
+        web.setBackgroundColor(Color.parseColor("#F4F5F4"))
         web.addJavascriptInterface(Bridge(), "Android")
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(

@@ -27,6 +27,9 @@ class PlannerWidget : AppWidgetProvider() {
     companion object {
         fun build(c: Context): RemoteViews {
             val rv = RemoteViews(c.packageName, R.layout.widget)
+            val dark = Store.p(c).getBoolean("widgetDark", false)
+            rv.setInt(R.id.widget_root, "setBackgroundColor", Color.parseColor(if (dark) "#252A29" else "#111111"))
+            rv.setTextColor(R.id.head, Color.parseColor("#BDEBE3"))
             rv.setRemoteAdapter(R.id.list, Intent(c, WidgetService::class.java))
             rv.setEmptyView(R.id.list, R.id.empty)
             val imm = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -81,8 +84,12 @@ class WidgetService : RemoteViewsService() {
             val s = SpannableString(o.getString("title"))
             if (done) s.setSpan(StrikethroughSpan(), 0, s.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             rv.setTextViewText(R.id.title, s)
-            rv.setTextColor(R.id.title, if (done) Color.parseColor("#99FFFFFF") else Color.WHITE)
+            val dark = Store.p(c).getBoolean("widgetDark", false)
+            rv.setTextColor(R.id.title, if (done) Color.GRAY else if (dark) Color.WHITE else Color.parseColor("#F4F5F4"))
             rv.setTextViewText(R.id.time, o.optString("time"))
+            rv.setTextColor(R.id.time, if (dark) Color.parseColor("#BDEBE3") else Color.parseColor("#AAB4C8"))
+            val priColor = when (o.optInt("pri", 0)) { 2 -> "#E76B68"; 1 -> "#F5C978"; else -> "#39B98A" }
+            rv.setInt(R.id.priority, "setBackgroundColor", Color.parseColor(priColor))
             rv.setImageViewResource(R.id.check, if (done) R.drawable.ic_check_on else R.drawable.ic_check_off)
             rv.setOnClickFillInIntent(
                 R.id.check,
@@ -113,6 +120,17 @@ class WidgetActionActivity : Activity() {
         try {
             if (act == "done") {
                 val wd = JSONArray(p.getString("wd", "[]"))
+                var estimate = 0
+                for (i in 0 until wd.length()) {
+                    val item = wd.getJSONObject(i)
+                    if (item.optString("id") == id && item.optString("key") == key) estimate = item.optInt("est", 0)
+                }
+                if (estimate > 0) {
+                    p.edit().putString("widgetTime", JSONObject().put("id", id).put("key", key).toString()).apply()
+                    startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+                    finish()
+                    return
+                }
                 var changed = false
                 for (i in 0 until wd.length()) {
                     val o = wd.getJSONObject(i)

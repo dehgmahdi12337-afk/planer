@@ -10,7 +10,7 @@
 :root.dk{--bg:#0e131a;--card:#171e28;--sheet:#1a2230;--glass:rgba(23,30,40,.8);--tx:#e8edf5;--mut:#8b95a7;--ln:#263041;--in:#202938;--sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
-body{background:var(--bg);color:var(--tx);font:15px Vazirmatn,Tahoma,system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+body{background:var(--bg);color:var(--tx);font:15px Vazirmatn,Tahoma,system-ui,sans-serif;font-family:var(--font),Tahoma,system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body::before{content:'';position:fixed;top:0;left:0;right:0;height:240px;z-index:-1;background:linear-gradient(180deg,rgba(59,130,246,.10),transparent)}
 input,textarea{-webkit-user-select:text;user-select:text}
 button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;transition:transform .12s,background .2s,opacity .2s}
@@ -104,7 +104,24 @@ nav button.on{flex:2.2;background:rgba(59,130,246,.12);color:var(--ac)}nav butto
 .hdr{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px}
 #toast{position:fixed;inset-inline:16px;bottom:calc(96px + env(safe-area-inset-bottom));max-width:520px;margin-inline:auto;background:var(--sheet);border:1px solid var(--ln);padding:13px 16px;border-radius:var(--r);z-index:60;display:none;box-shadow:var(--sh);animation:fade .2s ease both}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style>
+/* Planner Trantor UI */
+:root{--r:22px;--bg:#F4F5F4;--card:#FFFFFF;--sheet:#FFFFFF;--glass:rgba(17,17,17,.97);--tx:#171717;--mut:#777F7D;--ac:#BDEBE3;--ok:#39B98A;--wa:#F5C978;--bad:#E76B68;--ln:#E5E9E7;--in:#F0F3F1;--sh:0 2px 10px rgba(20,35,30,.045)}
+:root.dk{--bg:#252A29;--card:#343A38;--sheet:#303634;--glass:rgba(17,17,17,.97);--tx:#F4F7F5;--mut:#AAB4B0;--ac:#BDEBE3;--ok:#39B98A;--wa:#F5C978;--bad:#E76B68;--ln:#454D49;--in:#292F2D;--sh:0 3px 14px rgba(0,0,0,.18)}
+body::before{display:none}#app{padding:calc(10px + env(safe-area-inset-top)) 12px calc(104px + env(safe-area-inset-bottom))}
+.top{margin-bottom:9px}.top h1{font-size:20px}.g{border:0;border-radius:22px;box-shadow:var(--sh)}.ib{width:40px;height:40px;border:0;border-radius:50%;box-shadow:none}
+.b{border-radius:999px;background:#111;color:#fff;padding:10px 17px}.b.s{background:var(--in);color:var(--tx)}.b.r{background:var(--bad);color:#171717}.ch{border-radius:999px;padding:7px 12px}.ch.on{background:var(--ac);border-color:transparent;color:#111}
+.in{border:0;border-radius:15px;background:var(--in)}.in:focus{border-color:var(--ok);box-shadow:0 0 0 2px rgba(57,185,138,.12)}
+.hero{padding:15px;margin:0 0 9px;background:#111;color:#fff;border-radius:25px}.hero .jd,.hero .hr2{color:#B8C1BD}.hero .hr2 b{color:#fff}.hero .sc{background:var(--ac);color:#111;border-radius:16px}.hero .bar{background:#3A4140}.hero .bar i{background:var(--ac)}
+.strip{gap:6px;padding-bottom:9px}.dc{width:46px;border:0;border-radius:16px;background:var(--card)}.dc.on{background:var(--ac);color:#111}.dc.on small{color:#303735}.dc i{background:var(--ok)}
+.t{border:0;border-radius:17px;padding:9px 7px;margin:0 0 7px;gap:7px;background:var(--card);box-shadow:var(--sh);align-items:flex-start}.t .n b{font-size:12px;line-height:1.55;white-space:normal;overflow-wrap:anywhere}.t small{font-size:10px;line-height:1.5}.cb{width:23px;height:23px;border-radius:7px;border:1.7px solid var(--mut);flex:none}.cb.on{background:var(--ok);border-color:var(--ok)}.cp{font-size:10px;padding:2px 6px}
+h3{margin:13px 3px 7px;font-size:12px}.card{padding:13px;margin-bottom:9px}.hb{border:0;border-radius:21px;padding:13px;margin-bottom:9px}.tiles{gap:8px;margin:9px 0}.tile{padding:12px;border-radius:18px}.tile b{font-size:18px}
+nav{bottom:calc(8px + env(safe-area-inset-bottom));inset-inline:12px;padding:5px;border:0;border-radius:22px;background:#111;box-shadow:0 8px 26px rgba(0,0,0,.2);backdrop-filter:none;-webkit-backdrop-filter:none}
+nav button{color:#D5DEDA;border-radius:17px;padding:10px 3px}nav button.on{background:#fff;color:#111;flex:2.1}nav button span{font-size:11px}
+#fab{width:50px;height:50px;border-radius:50%;background:#111;color:#BDEBE3;bottom:calc(78px + env(safe-area-inset-bottom));box-shadow:0 7px 18px rgba(0,0,0,.2)}
+.sh{border-radius:25px 25px 0 0;padding:11px 15px calc(16px + env(safe-area-inset-bottom))}.ov.mid .sh{border-radius:24px}.mrow{border-radius:15px}#toast{border-radius:16px}
+.priority-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;align-items:start}.priority-column{min-width:0;border-radius:19px;padding:7px 5px;background:rgba(127,140,134,.07);border:1px solid var(--ln)}.priority-column h4{font-size:10px;text-align:center;margin:1px 0 7px;color:var(--mut);font-weight:700}.priority-column .t{display:flex;flex-direction:column;gap:5px;padding:8px 6px;min-height:88px}.priority-column .t .n{width:100%}.priority-column .t .cb{align-self:flex-start}.priority-column .t small{display:none}.priority-column .empty-col{font-size:10px;text-align:center;color:var(--mut);padding:9px 0}.priority-column .t.d{opacity:.65}
+@media(max-width:360px){.priority-columns{gap:4px}.priority-column{padding:5px 3px}.priority-column .t{padding:7px 4px}.priority-column .t .n b{font-size:10px}}
+.notes-head{margin-bottom:10px}.notes-grid{display:grid;gap:9px}.notes-grid.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.notes-grid.list{grid-template-columns:1fr}.note-card{padding:13px;min-width:0;cursor:pointer}.note-preview{font-size:12px;color:var(--mut);line-height:1.8;margin-top:8px;max-height:76px;overflow:hidden;overflow-wrap:anywhere}.note-meta{font-size:10px;color:var(--mut);margin-top:9px}.note-toolbar{margin:10px 0;gap:5px}.note-toolbar .ch{padding:7px 10px}.note-editor-body{min-height:42vh;padding:14px;border-radius:16px;background:var(--in);color:var(--tx);line-height:2;outline:0;overflow-wrap:anywhere}.note-editor-body:empty:before{content:attr(data-placeholder);color:var(--mut)}.note-editor-body ul,.note-editor-body ol{padding-inline-start:24px}.notes-head .in{font-size:13px}</style>
 </head>
 <body>
 <div id="app"><div class="top"><h1>پلنر</h1><button class="ib" id="gs" data-a="settings" aria-label="تنظیمات"></button></div><main id="view"></main></div>
@@ -139,7 +156,7 @@ let S={v:3,tasks:[],R:{},theme:'',accent:'',tm:null,ws:0,fz:1},NS={},DAY=TD(),TA
 const task=id=>S.tasks.find(t=>t.id===id),PC=['var(--ok)','var(--wa)','var(--bad)'];
 const rec=(t,k)=>(S.R[t.id]||{})[k]||null,isD=(t,k)=>{const r=rec(t,k);return!!(r&&r.d)};
 const setRec=(t,k,o)=>{const m=S.R[t.id]=S.R[t.id]||{};if(o)m[k]=o;else delete m[k]};
-const isIso=k=>/^\d{4}-\d\d-\d\d$/.test(k),lockedKey=k=>isIso(k)&&k!==TD();
+const isIso=k=>/^\d{4}-\d\d-\d\d$/.test(k),lockedKey=k=>isIso(k)&&k!==TD()&&!S.allowPastEdit;
 function migrate(o){const tasks=[],R={};
  (Array.isArray(o)?o:o.tasks||[]).forEach(x=>{if(!x||!x.title)return;const id=x.id||uid(),d=x.rep==='d';
   const t={id,title:String(x.title),note:'',type:d?'d':'w',days:[0,1,2,3,4,5,6],date:d?'':(x.date||''),rep:x.rep==='w',pri:x.pri||0,time:x.time||'',rem:x.rem||0,est:x.dur||0,from:x.date||TD(),cr:Date.now()};
@@ -148,7 +165,7 @@ function migrate(o){const tasks=[],R={};
  return{tasks,R}}
 function load(){let r=null;try{r=JSON.parse(localStorage.getItem('planner3'))}catch(e){}
  if(r&&r.v===3)S=Object.assign(S,r);
- else for(const k of['planner-v2','planner-v1']){try{const o=JSON.parse(localStorage.getItem(k));if(o){Object.assign(S,migrate(o));if(o.theme)S.theme=o.theme;break}}catch(e){}}}
+ else for(const k of['planner-v2','planner-v1']){try{const o=JSON.parse(localStorage.getItem(k));if(o){Object.assign(S,migrate(o));if(o.theme)S.theme=o.theme;break}}catch(e){}}S.notes=(S.notes||[]).filter(n=>!n.trashedAt||Date.now()-n.trashedAt<30*86400000)}
 function save(){try{localStorage.setItem('planner3',JSON.stringify(S))}catch(e){}syncSoon()}
 /* ---------- occurrences ---------- */
 function occ(D){const out=[];S.tasks.forEach(t=>{
@@ -172,18 +189,14 @@ function rowH(it){const t=it.t,r=rec(t,it.k),meta=[{d:'روزانه',w:'هفتگ
  if(t.time)meta.push(ic('clock',12)+' '+fs(t.time));if(t.est&&!(r&&r.a))meta.push((t.type==='d'?'هدف ':'تخمین ')+fm(t.est));
  const nl=t.note?t.note.split('\n').filter(x=>x.trim()).length:0;if(nl)meta.push(ic('note',12)+' '+fs(nl)+' بند');
  return `<div class="t g${it.d?' d':''}" style="--pc:${PC[t.pri]}"><button class="cb${it.d?' on':''}" data-a="cb" data-t="${t.id}" data-k="${it.k}"${lockedKey(it.k)?' disabled':''}>${it.d?ic('check',17):''}</button><div class="n" data-a="edit" data-id="${t.id}"><b>${esc(t.title)}</b><small>${meta.join(' · ')}</small>${it.d&&r&&r.a&&t.est?cmp(t.est,r.a):''}</div></div>`}
-function daysView(){const td=TD(),isT=DAY===td;let strip='';
- for(let i=0;i<14;i++){const D=addD(td,i),n=dayItems(D).length;strip+=`<button class="dc${D===DAY?' on':''}" data-a="day" data-v="${D}"><small>${i?WL[dow(D)]:'امروز'}</small><b>${fs(jp(D).d)}</b><i${n?'':' style="opacity:0"'}></i></button>`}
- const its=dayItems(DAY),und=its.filter(i=>i.u),reg=its.filter(i=>!i.u),sch=reg.filter(i=>!i.d).sort(srt),up=und.filter(i=>!i.d).sort(srt),dn=its.filter(i=>i.d).sort(srtDone),tot=its.length,dc=dn.length,p=tot?dc/tot:0;
+function daysView(){const td=TD(),isT=DAY===td;let strip='';for(let i=-7;i<7;i++){const D=addD(td,i),n=dayItems(D).length;strip+=`<button class="dc${D===DAY?' on':''}" data-a="day" data-v="${D}"><small>${i?WL[dow(D)]:'امروز'}</small><b>${fs(jp(D).d)}</b><i${n?'':' style="opacity:0"'}></i></button>`}
+ const its=dayItems(DAY),done=its.filter(i=>i.d).sort(srtDone),todo=its.filter(i=>!i.d).sort(srt),tot=its.length,dc=done.length,p=tot?dc/tot:0;
  const rel=isT?'امروز':DAY===addD(td,1)?'فردا':fs(Math.round((new Date(DAY+'T12:00:00')-new Date(td+'T12:00:00'))/864e5))+' روز بعد';
- let h=`<div class="strip">${strip}</div><div class="g hero"><div class="hr1"><div><div class="wd">${WD[dow(DAY)]}</div><div class="jd">${jf(DAY)} ${fs(jp(DAY).y)} · ${rel}</div></div>${isT?`<div class="sc"><small>امتیاز</small><b>${fs(score())}</b></div>`:''}</div>${bar(p)}<div class="hr2"><span>${fs(dc)} انجام‌شده</span><span>${fs(tot-dc)} باقی‌مانده</span><b>${fs(Math.round(p*100))}٪</b></div></div>`;
- if(sch.length)h+=`<h3>کارهای زمان‌بندی‌شده</h3>`+sch.map(rowH).join('');
- if(up.length)h+=`<h3>کارهای بدون تاریخ</h3>`+up.map(rowH).join('');
+ let h=`<div class="note" style="font-weight:700;margin:0 3px 8px;color:var(--mut)">آینده‌ت رو خودت بنویس</div><div class="strip">${strip}</div><div class="g hero"><div class="hr1"><div><div class="wd">${WD[dow(DAY)]}</div><div class="jd">${jf(DAY)} ${fs(jp(DAY).y)} · ${rel}</div></div>${isT?`<div class="sc"><small>امتیاز</small><b>${fs(score())}</b></div>`:''}</div>${bar(p)}<div class="hr2"><span>${fs(dc)} انجام‌شده</span><span>${fs(tot-dc)} باقی‌مانده</span><b>${fs(Math.round(p*100))}٪</b></div></div>`;
+ const labels=[['خیلی مهم',2],['متوسط',1],['کم‌اهمیت',0]];
+ h+='<div class="priority-columns">'+labels.map(([label,pri])=>{const items=todo.filter(i=>i.t.pri===pri).concat(done.filter(i=>i.t.pri===pri));return `<section class="priority-column"><h4>${label}</h4>${items.length?items.map(rowH).join(''):'<div class="empty-col">—</div>'}</section>`}).join('')+'</div>';
  if(!tot)h+=`<div class="empty">برای ${rel} کاری ثبت نشده.<br>با دکمه‌ی + کار جدید بساز.</div>`;
- if(dn.length)h+=`<h3>انجام‌شده · ${fs(dn.length)}</h3>`+dn.map(rowH).join('');
- if(isT){const ms=missed(60);if(ms.length){h+=`<button class="mh" data-a="sm">از دست رفته · ${fs(ms.length)} ${SHOWM?'▴':'▾'}</button>`;
-  if(SHOWM)h+=ms.map(m=>`<div class="t g" style="--pc:${PC[m.t.pri]}"><button class="cb no" disabled>${ic('x',17)}</button><div class="n"><b>${esc(m.t.title)}</b><small>${jf(m.D,true)} · قفل شده</small></div></div>`).join('')}}
- return h}
+ if(isT){const ms=missed(60);if(ms.length){h+=`<button class="mh" data-a="sm">از دست رفته · ${fs(ms.length)} ${SHOWM?'▴':'▾'}</button>`;if(SHOWM)h+=ms.map(m=>`<div class="t g" style="--pc:${PC[m.t.pri]}"><button class="cb no" disabled>${ic('x',17)}</button><div class="n"><b>${esc(m.t.title)}</b><small>${jf(m.D,true)} · قفل شده</small></div></div>`).join('')}}return h}
 const hstat=(t,days)=>{let ok=0,no=0;days.forEach(D=>{const s=cellS(t,D);if(s==='ok')ok++;else if(s==='no')no++});return{ok,no,n:ok+no,p:ok+no?ok/(ok+no):0}};
 function bestStreak(t){let b=0,r=0;for(let i=400;i>=0;i--){const D=addD(TD(),-i);if(!isDue(t,D))continue;if(isD(t,D)){r++;if(r>b)b=r}else if(i>0)r=0}return b}
 const weekDays=off=>{const s=addD(wstart(TD()),off*7),a=[];for(let i=0;i<7;i++)a.push(addD(s,i));return a};
@@ -221,8 +234,51 @@ function statsView(){const wk=SP.mode==='w',td=TD(),days=periodDays(),j=jp(days[
  const a=[];S.tasks.forEach(t=>{if(!t.est)return;Object.keys(S.R[t.id]||{}).forEach(k=>{const r=S.R[t.id][k];if(r.d&&r.a)a.push({t,r})})});
  if(a.length){a.sort((x,y)=>(y.r.t||0)-(x.r.t||0));h+=`<div class="g card"><b>دقت تخمین زمان</b><div class="note">سبز: تخمین دقیق · زرد: کمی فرق · قرمز: فرق زیاد</div>${a.slice(0,8).map(x=>`<div class="ar"><span>${esc(x.t.title)}</span>${cmp(x.t.est,x.r.a)}</div>`).join('')}</div>`}
  return h}
-function render(){$('view').innerHTML=TAB==='days'?daysView():TAB==='habits'?habitsView():statsView();
- $('nav').innerHTML=[['days','cal','روزها'],['habits','repeat','عادت‌ها'],['stats','chart','آمار']].map(([k,i,l])=>`<button class="${TAB===k?'on':''}" data-a="tab" data-v="${k}" aria-label="${l}">${ic(i,22)}<span>${l}</span></button>`).join('');
+
+// ---------- Notes v1 ----------
+let NOTE=null,NOTE_FILTER='all',NOTE_LAYOUT='grid',noteSaveTimer=null;
+const noteById=id=>(S.notes||[]).find(n=>n.id===id);
+function notesView(){
+ const notes=(S.notes||[]).filter(n=>NOTE_FILTER==='trash'?!!n.trashedAt:NOTE_FILTER==='archive'?!!n.archived&&!n.trashedAt:NOTE_FILTER==='pinned'?!n.archived&&!n.trashedAt&&!!n.pinned:!n.archived&&!n.trashedAt);
+ const q=(document.getElementById('noteSearch')?.value||'').trim().toLocaleLowerCase();
+ const filtered=notes.filter(n=>!q||(n.title+' '+n.body+' '+(n.folder||'')+' '+(n.tags||[]).join(' ')).toLocaleLowerCase().includes(q));
+ filtered.sort((a,b)=>(b.pinned-a.pinned)||(b.updated||0)-(a.updated||0));
+ return `<div class="notes-head"><div class="rw" style="justify-content:space-between"><b>یادداشت‌ها</b><button class="ch on" data-a="nnew">${ic('plus',15)} یادداشت جدید</button></div>
+ <input id="noteSearch" class="in" style="margin:10px 0" placeholder="جست‌وجو در یادداشت‌ها..." value="${esc(q)}">
+ <div class="rw"><button class="ch ${NOTE_FILTER==='all'?'on':''}" data-a="nfilter" data-v="all">همه</button><button class="ch ${NOTE_FILTER==='pinned'?'on':''}" data-a="nfilter" data-v="pinned">سنجاق‌شده</button><button class="ch ${NOTE_FILTER==='archive'?'on':''}" data-a="nfilter" data-v="archive">آرشیو</button><button class="ch ${NOTE_FILTER==='trash'?'on':''}" data-a="nfilter" data-v="trash">زباله‌دان</button><button class="ch" data-a="nlayout">${NOTE_LAYOUT==='grid'?'نمای فهرست':'نمای شبکه‌ای'}</button></div></div>
+ <div class="notes-grid ${NOTE_LAYOUT}">${filtered.map(n=>`<article class="note-card g" data-a="nedit" data-id="${n.id}"><div class="rw" style="justify-content:space-between"><b>${esc(n.title||'بدون عنوان')}</b><span>${n.pinned?'📌':''}</span></div><div class="note-preview">${(n.body||'').replace(/<[^>]*>/g,' ').slice(0,150)||'یادداشت خالی'}</div><div class="note-meta">${esc(n.folder||'بدون پوشه')} · ${(n.tags||[]).map(esc).join('، ')}</div>${NOTE_FILTER==='trash'?'<button class="ch" data-a="nrestore" data-id="'+n.id+'">بازیابی</button>':''}</article>`).join('')||'<div class="empty">یادداشتی پیدا نشد.</div>'}</div>`
+}
+function openNoteEditor(id){
+ const old=id&&noteById(id);
+ NOTE=old?JSON.parse(JSON.stringify(old)):{id:uid(),title:'',body:'',folder:'شخصی',tags:[],pinned:false,archived:false,trashedAt:0,updated:Date.now()};
+ layer('<div class="pg" id="noteEditor"></div>','pgv');drawNoteEditor();
+}
+function drawNoteEditor(){
+ const n=NOTE;$('noteEditor').innerHTML=`<div class="top"><button class="ib" data-a="nback">${ic('back',20)}</button><b>ویرایش یادداشت</b><button class="ch on" data-a="nsave">ذخیره</button></div>
+ <input class="in" id="noteTitle" maxlength="100" placeholder="عنوان یادداشت" value="${esc(n.title)}">
+ <div class="rw note-toolbar"><button class="ch" data-a="nformat" data-v="bold"><b>B</b></button><button class="ch" data-a="nformat" data-v="italic"><i>I</i></button><button class="ch" data-a="nformat" data-v="underline"><u>U</u></button><button class="ch" data-a="nformat" data-v="insertUnorderedList">• فهرست</button><button class="ch" data-a="nformat" data-v="insertOrderedList">۱. شماره</button><button class="ch" data-a="ncheck">☐ چک‌لیست</button></div>
+ <div id="noteBody" class="note-editor-body" contenteditable="true" data-placeholder="یادداشتت را بنویس...">${n.body||''}</div>
+ <div class="fl">پوشه</div><input class="in" id="noteFolder" value="${esc(n.folder||'شخصی')}" placeholder="نام پوشه">
+ <div class="fl">برچسب‌ها (با ویرگول جدا کن)</div><input class="in" id="noteTags" value="${esc((n.tags||[]).join('، '))}" placeholder="مثلاً کار، ایده، شخصی">
+ <div class="rw" style="margin-top:14px"><button class="ch" data-a="npin">${n.pinned?'برداشتن سنجاق':'سنجاق کردن'}</button><button class="ch" data-a="narchive">انتقال به آرشیو</button><button class="ch" data-a="nconvert">تبدیل چک‌لیست به کار</button><button class="ch" data-a="ntrash">انتقال به زباله‌دان</button></div>
+ <div class="note" style="margin-top:10px">ذخیره خودکار فعال است · یادداشت‌ها روی همین دستگاه ذخیره می‌شوند.</div>`;
+}
+document.addEventListener('input',e=>{if(e.target.id==='noteSearch'){const q=e.target.value.toLocaleLowerCase();document.querySelectorAll('.note-card').forEach(card=>{card.style.display=card.innerText.toLocaleLowerCase().includes(q)?'':'none'})}});
+function saveNoteDraft(){
+ if(!NOTE||!$('noteEditor'))return;
+ NOTE.title=$('noteTitle')?.value||'';
+ NOTE.body=$('noteBody')?.innerHTML||'';
+ NOTE.folder=$('noteFolder')?.value.trim()||'شخصی';
+ NOTE.tags=($('noteTags')?.value||'').split(/[،,]/).map(x=>x.trim()).filter(Boolean);
+ NOTE.updated=Date.now();
+ const i=(S.notes||[]).findIndex(n=>n.id===NOTE.id);
+ if(i<0){S.notes=S.notes||[];S.notes.push(NOTE)}else S.notes[i]=NOTE;
+ save();
+}
+document.addEventListener('input',e=>{if(['noteTitle','noteBody','noteFolder','noteTags'].includes(e.target.id)){clearTimeout(noteSaveTimer);noteSaveTimer=setTimeout(saveNoteDraft,700)}});
+
+function render(){$('view').innerHTML=TAB==='days'?daysView():TAB==='habits'?habitsView():TAB==='notes'?notesView():statsView();
+ $('nav').innerHTML=[['days','cal','روزها'],['habits','repeat','عادت‌ها'],['notes','note','یادداشت'],['stats','chart','آمار']].map(([k,i,l])=>`<button class="${TAB===k?'on':''}" data-a="tab" data-v="${k}" aria-label="${l}">${ic(i,22)}<span>${l}</span></button>`).join('');
  $('fab').style.display=TAB==='stats'?'none':'grid'}
 /* ---------- layers & dialogs ---------- */
 function layer(html,cls){const d=document.createElement('div');d.className='ov'+(cls?' '+cls:'');d.innerHTML=html;document.body.appendChild(d);return d}
@@ -233,13 +289,13 @@ const tfield=(p,v,pre)=>{const a=v?v.split(':'):['',''];return`<div class="tf"><
 const rt=p=>{const h=$(p+'h'),m=$(p+'m');if(!h||!m||h.value===''&&m.value==='')return'';let a=+en(h.value||'0'),b=+en(m.value||'0');if(a>=24)a=a===24?0:23;if(b>59)b=59;return z(a)+':'+z(b)};
 const stf=(p,v)=>{const a=v.split(':');$(p+'h').value=fs(a[0]);$(p+'m').value=fs(a[1])};
 /* ---------- task form ---------- */
-function openForm(id,type){const t=id&&task(id);F=t?JSON.parse(JSON.stringify(t)):{id:'',title:'',note:'',type:type||'d',days:[0,1,2,3,4,5,6],date:'',rep:false,pri:1,time:'',rem:0,est:0,wg:0,ps:[]};F.more=false;if(!t&&F.type!=='d'&&TAB==='days')F.date=DAY;layer('<div class="sh" id="fsh"></div>');drawForm()}
+function openForm(id,type){const t=id&&task(id);F=t?JSON.parse(JSON.stringify(t)):{id:'',title:'',note:'',type:type||'d',days:[0,1,2,3,4,5,6],date:'',rep:false,pri:1,time:'',rem:0,est:0,wg:0,ps:[]};F.more=false;F.descOpen=!!F.note;if(!t&&F.type!=='d'&&TAB==='days')F.date=DAY;layer('<div class="sh" id="fsh"></div>');drawForm()}
 function readForm(){if(!$('ft'))return;F.title=$('ft').value;F.note=$('fn').value;if($('f2h'))F.time=rt('f2');if($('fe')){const raw=en($('fe').value||'');if(raw)F.est=Math.min(+raw,1440)}}
 function drawForm(){const f=F,hasTime=f.type==='d'||f.date,sum=[['کم‌اهمیت','متوسط','خیلی مهم'][f.pri]];if(f.est)sum.push(fm(f.est));if(f.rem)sum.push('یادآوری '+fs(f.rem)+' دقیقه قبل');if(f.type==='d'&&f.days.length<7)sum.push(fs(f.days.length)+' روز در هفته');
  const timeRow=`<div class="fl">ساعت (اختیاری)</div><div class="rw">${tfield('f2',f.time,1)}<button class="ch" data-a="tnow" data-v="f2">همین الان</button><button class="ch" data-a="tclr" data-v="f2">پاک کردن</button></div>`;
  $('fsh').innerHTML=`<div class="grab"></div><h2>${f.id?'ویرایش کار':'کار جدید'}</h2>
 <div class="fl">عنوان</div><input class="in" id="ft" maxlength="80" placeholder="چی باید انجام بدی؟" value="${esc(f.title)}">
-<div class="fl">توضیحات (اختیاری)</div><textarea class="in" id="fn" placeholder="هر خط یک بند؛ با Enter شماره‌ی بعدی خودکار میاد">${esc(f.note)}</textarea><button class="ch" data-a="fnum" style="margin-top:8px">${ic('note',14)} شماره‌گذاری</button>
+<button class="ch" data-a="fdesc" style="margin-top:10px">${ic('note',14)} ${f.descOpen?'بستن توضیحات':'افزودن توضیحات'}</button>${f.descOpen?`<textarea class="in" id="fn" placeholder="توضیحات کار...">${esc(f.note)}</textarea><div class="rw" style="justify-content:flex-start;margin-top:5px"><button class="ch" data-a="fnum" title="شماره‌گذاری">${ic('note',15)}</button></div>`:''}
 <div class="fl">نوع کار</div><div class="rw">${[['d','روزانه (عادت)'],['w','هفتگی'],['m','ماهانه']].map(([k,l])=>`<button class="ch${f.type===k?' on':''}" data-a="ftype" data-v="${k}">${l}</button>`).join('')}</div>
 ${f.type==='d'?'':`<div class="fl">تاریخ (اختیاری)</div><div class="rw"><button class="ch${f.date?' on':''}" data-a="fdate">${ic('cal',15)} ${f.date?jf(f.date,true):'بدون تاریخ'}</button>${f.date?`<button class="ch" data-a="fnodate">حذف تاریخ</button>`:''}</div>`}
 ${hasTime?timeRow:''}
@@ -273,15 +329,30 @@ function complete(t,k,o){setRec(t,k,Object.assign({d:1,t:Date.now(),dt:TD()},o||
 function setH(){const th=S.theme,acc=['#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'],last=NS.last?new Date(NS.last).toLocaleString('fa-IR',{dateStyle:'medium',timeStyle:'short'}):'';
  const sg=(a,cur,opts)=>`<div class="seg">${opts.map(([v,l])=>`<button class="${String(cur)===String(v)?'on':''}" data-a="${a}" data-v="${v}">${l}</button>`).join('')}</div>`;
  return`<div class="top"><button class="ib" data-a="close">${ic('back',20)}</button><h1 style="font-size:20px">تنظیمات</h1><span style="width:42px"></span></div>
-<h3>۱. ظاهر و شخصی‌سازی</h3><div class="g card"><b>حالت نمایش</b><div style="margin-top:10px">${sg('th',th,[['','خودکار'],['dark','تیره'],['light','روشن']])}</div><div class="fl">رنگ اصلی</div><div class="sw">${acc.map(c=>`<i data-a="ac" data-v="${c}" style="background:${c}" class="${(S.accent||acc[0])===c?'on':''}"></i>`).join('')}</div><div class="fl">اندازه‌ی نوشته</div>${sg('fz',S.fz||1,[[.92,'کوچک'],[1,'معمولی'],[1.12,'بزرگ'],[1.25,'خیلی بزرگ']])}<div class="fl">شروع هفته</div>${sg('wsd',S.ws||0,[[0,'شنبه'],[1,'یکشنبه'],[2,'دوشنبه']])}</div>
-<h3>۲. اعلان‌ها</h3><div class="g card"><p class="note" style="margin:0 0 10px">${!NA?'اعلان واقعی فقط تو نسخه‌ی نصب‌شده‌ی اندروید کار می‌کنه.':NS.perm?'اعلان فعاله و یادآورها سر وقت، حتی وقتی برنامه بسته است، نشون داده می‌شن.':'اجازه‌ی اعلان داده نشده. برای اینکه یادآور کارها سر وقت نشون داده بشه، دکمه‌ی زیر رو بزن و اجازه بده. اگه پنجره‌ای نیومد: تنظیمات گوشی ← برنامه‌ها ← Planner ← اعلان‌ها.'}</p><div class="rw">${NA&&!NS.perm?`<button class="b" data-a="nperm">فعال‌سازی اعلان</button>`:''}<button class="b s" data-a="ntest">اعلان آزمایشی</button></div></div>
-<h3>۳. پشتیبان‌گیری و بازیابی</h3><div class="g card"><p class="note" style="margin:0 0 10px">${!NA?'پشتیبان‌گیری فایل فقط تو نسخه‌ی اندروید فعاله.':NS.auto?'پشتیبان خودکار هفتگی روشنه'+(NS.dir?' و تو پوشه‌ی انتخابی ذخیره می‌شه.':' و تو حافظه‌ی داخلی برنامه ذخیره می‌شه (با حذف برنامه پاک می‌شه؛ برای امن‌تر بودن یه پوشه انتخاب کن).'):'پشتیبان خودکار خاموشه.'}${last?`<br>آخرین پشتیبان ${NS.ok===false?'ناموفق بود':'موفق'}: ${last}`:''}</p><div class="rw"><button class="b" data-a="bnow">تهیه نسخه‌ی پشتیبان</button><button class="b s" data-a="brest">بازیابی از فایل</button><button class="b s" data-a="bdir">انتخاب پوشه</button><button class="b s" data-a="bauto">${NS.auto?'خاموش کردن خودکار':'روشن کردن خودکار'}</button></div></div>
-<h3>۴. مدیریت اطلاعات</h3><div class="g card"><div class="rw"><button class="b s" data-a="expc">خروجی CSV (جدول)</button><button class="b s" data-a="expj">خروجی JSON</button><button class="b s" data-a="clr">حذف کارهای یک‌باره‌ی انجام‌شده</button></div></div>
-<h3>۵. درباره‌ی برنامه</h3><div class="g card"><b>Planner</b><p class="note" style="margin:6px 0 0">نسخه‌ی ${esc(NS.ver||'وب')}<br>شناسه: ir.dehgmahdi.planner</p></div>`}
+<h3>۱. ظاهر و شخصی‌سازی</h3><div class="g card"><b>حالت نمایش</b><div style="margin-top:10px">${sg('th',th,[['','خودکار'],['dark','تیره'],['light','روشن']])}</div><div class="fl">رنگ اصلی</div><div class="sw">${acc.map(c=>`<i data-a="ac" data-v="${c}" style="background:${c}" class="${(S.accent||acc[0])===c?'on':''}"></i>`).join('')}</div><div class="fl">اندازه‌ی نوشته</div>${sg('fz',S.fz||1,[[.92,'کوچک'],[1,'معمولی'],[1.12,'بزرگ'],[1.25,'خیلی بزرگ']])}<div class="fl">شروع هفته</div>${sg('wsd',S.ws||0,[[0,'شنبه'],[1,'یکشنبه'],[2,'دوشنبه']])}<div class="fl">نوع فونت</div>${sg('ff',S.font||'Vazirmatn',[['Vazirmatn','وزیرمتن'],['Tahoma','تاهوما'],['system-ui','فونت سیستم']])}</div>
+<h3>۲. ویرایش روزهای گذشته</h3><div class="g card"><p class="note">در حالت خاموش، کارهای روزهای گذشته قفل هستند. با فعال‌سازی می‌توانی کارهای عقب‌افتاده را تکمیل کنی.</p>${sg('past',!!S.allowPastEdit,[[false,'غیرفعال'],[true,'فعال']])}</div><h3>۳. اعلان‌ها</h3><div class="g card"><p class="note" style="margin:0 0 10px">${!NA?'اعلان واقعی فقط تو نسخه‌ی نصب‌شده‌ی اندروید کار می‌کنه.':NS.perm?'اعلان فعاله و یادآورها سر وقت، حتی وقتی برنامه بسته است، نشون داده می‌شن.':'اجازه‌ی اعلان داده نشده. برای اینکه یادآور کارها سر وقت نشون داده بشه، دکمه‌ی زیر رو بزن و اجازه بده. اگه پنجره‌ای نیومد: تنظیمات گوشی ← برنامه‌ها ← Planner ← اعلان‌ها.'}</p><div class="rw">${NA&&!NS.perm?`<button class="b" data-a="nperm">فعال‌سازی اعلان</button>`:''}<button class="b s" data-a="ntest">اعلان آزمایشی</button></div></div>
+<h3>۴. پشتیبان‌گیری و بازیابی</h3><div class="g card"><p class="note" style="margin:0 0 10px">${!NA?'پشتیبان‌گیری فایل فقط تو نسخه‌ی اندروید فعاله.':NS.auto?'پشتیبان خودکار هفتگی روشنه'+(NS.dir?' و تو پوشه‌ی انتخابی ذخیره می‌شه.':' و تو حافظه‌ی داخلی برنامه ذخیره می‌شه (با حذف برنامه پاک می‌شه؛ برای امن‌تر بودن یه پوشه انتخاب کن).'):'پشتیبان خودکار خاموشه.'}${last?`<br>آخرین پشتیبان ${NS.ok===false?'ناموفق بود':'موفق'}: ${last}`:''}</p><div class="rw"><button class="b" data-a="bnow">تهیه نسخه‌ی پشتیبان</button><button class="b s" data-a="brest">بازیابی از فایل</button><button class="b s" data-a="bdir">انتخاب پوشه</button><button class="b s" data-a="bauto">${NS.auto?'خاموش کردن خودکار':'روشن کردن خودکار'}</button></div></div>
+<h3>۵. مدیریت اطلاعات</h3><div class="g card"><div class="rw"><button class="b s" data-a="expc">خروجی CSV (جدول)</button><button class="b s" data-a="expj">خروجی JSON</button><button class="b s" data-a="clr">حذف کارهای یک‌باره‌ی انجام‌شده</button></div></div>
+<h3>۶. درباره‌ی برنامه</h3><div class="g card"><b>Planner</b><p class="note" style="margin:6px 0 0">نسخه‌ی ${esc(NS.ver||'وب')}<br>شناسه: ir.dehgmahdi.planner</p></div>`}
 function openSettings(){layer('<div class="pg" id="spg">'+setH()+'</div>','pgv')}
 /* ---------- actions ---------- */
+
+A.nnew=()=>openNoteEditor('');
+A.nedit=e=>openNoteEditor(e.dataset.id);
+A.nback=()=>{saveNoteDraft();closeL();render()};
+A.nsave=()=>{saveNoteDraft();closeL();render();toast('یادداشت ذخیره شد')};
+A.nfilter=e=>{NOTE_FILTER=e.dataset.v;render()};
+A.nlayout=()=>{NOTE_LAYOUT=NOTE_LAYOUT==='grid'?'list':'grid';render()};
+A.nformat=e=>{document.execCommand(e.dataset.v,false,null);$('noteBody')?.focus();saveNoteDraft()};
+A.ncheck=()=>{document.execCommand('insertText',false,'☐ ');$('noteBody')?.focus();saveNoteDraft()};
+A.npin=()=>{NOTE.pinned=!NOTE.pinned;saveNoteDraft();drawNoteEditor()};
+A.narchive=()=>{NOTE.archived=!NOTE.archived;saveNoteDraft();closeL();render()};
+A.ntrash=()=>{NOTE.trashedAt=Date.now();saveNoteDraft();closeL();render()};
+A.nrestore=e=>{const n=noteById(e.dataset.id);if(n){n.trashedAt=0;n.archived=false;save();render()}};
+A.nconvert=()=>{saveNoteDraft();const text=$('noteBody')?.innerText||'';const lines=text.split(/\n/).map(x=>x.replace(/^\s*[☐☑✓-]\s*/,'').trim()).filter(Boolean);if(!lines.length){toast('چک‌لیستی برای تبدیل پیدا نشد');return}lines.forEach(title=>S.tasks.push({id:uid(),title,note:'',type:'w',days:[0,1,2,3,4,5,6],date:'',rep:false,pri:1,time:'',rem:0,est:0,from:TD(),cr:Date.now(),wg:0,ps:[]}));save();closeL();TAB='days';render();toast(fs(lines.length)+' کار ساخته شد')};
+
 A.tab=e=>{TAB=e.dataset.v;render()};A.day=e=>{DAY=e.dataset.v;render()};A.sm=()=>{SHOWM=!SHOWM;render()};
-A.close=()=>closeL();A.settings=()=>openSettings();A.add=()=>openForm('',TAB==='habits'?'d':'w');A.edit=e=>openForm(e.dataset.id);
+A.close=()=>closeL();A.settings=()=>openSettings();A.add=()=>TAB==='notes'?openNoteEditor(''):openForm('',TAB==='habits'?'d':'w');A.edit=e=>openForm(e.dataset.id);
 A.askok=()=>{closeL();const f=ASK;ASK=null;f&&f()};
 A.cb=e=>{const t=task(e.dataset.t),k=e.dataset.k;if(!t)return;if(isD(t,k)){if(lockedKey(k))return;setRec(t,k,null);save();render();return}if(t.est>0)openAct(t.id,k);else complete(t,k)};
 A.spm=e=>{SP.mode=e.dataset.v;SP.off=0;render()};A.spn=e=>{SP.off+=+e.dataset.v;render()};
@@ -294,6 +365,7 @@ A.dpn=e=>{DP.first=+e.dataset.v>0?mfirst(addD(DP.first,32)):mfirst(addD(DP.first
 A.dpm=e=>{let m=jp(DP.first).m;const to=+e.dataset.v;while(m<to){DP.first=mfirst(addD(DP.first,32));m++}while(m>to){DP.first=mfirst(addD(DP.first,-1));m--}datePick()};
 A.dpd=e=>{F.date=e.dataset.v;if(!F.date){F.rep=false;F.time='';F.rem=0}closeL();drawForm()};
 A.tnow=e=>stf(e.dataset.v,nowHM());A.tclr=e=>{$(e.dataset.v+'h').value='';$(e.dataset.v+'m').value=''};
+A.fdesc=()=>{readForm();F.descOpen=!F.descOpen;drawForm()};
 A.fnum=()=>{const n=$('fn'),v=n.value;let last=0;v.split('\n').forEach(l=>{const m=en(l).match(/^(\d+)[.)]/);if(m)last=+m[1]});n.value=v+(v&&!v.endsWith('\n')?'\n':'')+fs(last+1)+'. ';n.focus()};
 A.fsave=()=>{readForm();const f=F;f.title=f.title.trim();if(!f.title){toast('عنوان کار رو بنویس');return}
  if(f.type==='d'&&!f.days.length){toast('حداقل یک روز انتخاب کن');return}
@@ -306,7 +378,7 @@ A.amode=e=>{if(AD.mode==='m'){AD.s=rt('a1')||AD.s;AD.e=rt('a2')||AD.e}AD.mode=e.
 A.tstart=()=>{S.tm={id:AD.id,k:AD.k,st:Date.now()};AD.tmin=0;save();drawAct()};
 A.tstop=()=>{if(!S.tm)return;AD.tmin=Math.max(1,Math.round((Date.now()-S.tm.st)/60000));S.tm=null;save();drawAct()};
 A.aok=()=>{const t=task(AD.id),m=actMin();if(!m){toast('زمان معتبر وارد کن');return}const o={a:m};if(AD.mode==='m'){o.s=rt('a1');o.e=rt('a2')}if(S.tm&&S.tm.id===AD.id)S.tm=null;closeL();complete(t,AD.k,o)};
-A.th=e=>{S.theme=e.dataset.v;save();applyTheme();$('spg').innerHTML=setH()};A.ac=e=>{S.accent=e.dataset.v;save();applyTheme();$('spg').innerHTML=setH()};
+A.th=e=>{S.theme=e.dataset.v;save();applyTheme();$('spg').innerHTML=setH()};A.ff=e=>{S.font=e.dataset.v;save();applyTheme();$('spg').innerHTML=setH()};A.past=e=>{S.allowPastEdit=e.dataset.v==='true';save();$('spg').innerHTML=setH();render()};A.ac=e=>{S.accent=e.dataset.v;save();applyTheme();$('spg').innerHTML=setH()};
 A.nperm=()=>NA&&NA.perm();A.ntest=()=>NA?NA.test():toast('این یه اعلان آزمایشیه (تو مرورگر فقط پیام داخل برنامه)');
 A.bnow=()=>{if(!NA)return toast('فقط تو نسخه‌ی اندروید');sync();NA.backupNow()};A.brest=()=>NA?NA.restorePick():toast('فقط تو نسخه‌ی اندروید');
 A.bdir=()=>NA?NA.pickDir():toast('فقط تو نسخه‌ی اندروید');A.bauto=()=>{if(!NA)return toast('فقط تو نسخه‌ی اندروید');sync();NA.autoBackup(!NS.auto)};
@@ -322,26 +394,27 @@ A.expc=()=>NA?NA.exportFile('planner-export-'+TD()+'.csv','text/csv',csv()):toas
 A.expj=()=>NA?NA.exportFile('planner-export-'+TD()+'.json','application/json',JSON.stringify(exportState())):toast('خروجی فایل فقط تو نسخه‌ی اندروید فعاله');
 document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('ov')&&!e.target.classList.contains('pgv')){e.target.remove();return}
  const t=e.target.closest('[data-a]');if(t&&A[t.dataset.a])A[t.dataset.a](t,e)});
-document.addEventListener('focusin',e=>{const p=e.target.dataset&&e.target.dataset.pre;if(p&&!rt(p))stf(p,nowHM())});
+document.addEventListener('focusin',e=>{const p=e.target.dataset&&e.target.dataset.pre;if(p&&!rt(p))stf(p,nowHM());if(e.target.classList.contains('tfi'))e.target.scrollIntoView({block:'nearest'})});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable)return;const ids=['ft','f2h','f2m','fe'];const idx=ids.indexOf(e.target.id);if(idx<0)return;const next=ids.slice(idx+1).find(id=>$(id));if(next){e.preventDefault();$(next).focus();$(next).scrollIntoView({block:'nearest'})}else if($('fn')){$('fn').focus()}else{e.preventDefault();document.querySelector('[data-a="fsave"]')?.focus()}});
 document.addEventListener('input',e=>{const t=e.target;if(t.classList.contains('tfi')){t.value=fs(en(t.value).replace(/\D/g,'').slice(0,2));if(AD&&$('ares')&&/^a[12]/.test(t.id))$('ares').innerHTML=actRes()}else if(t.id==='fe')t.value=fs(en(t.value).replace(/\D/g,'').slice(0,4))});
 document.addEventListener('beforeinput',e=>{const t=e.target;if(t.id!=='fn'||!/insertLineBreak|insertParagraph/.test(e.inputType))return;const v=t.value,p=t.selectionStart,line=v.slice(v.lastIndexOf('\n',p-1)+1,p),m=en(line).match(/^(\d+)[.)]\s/);if(m){e.preventDefault();t.setRangeText('\n'+fs(+m[1]+1)+'. ',p,p,'end')}});
 /* ---------- native bridge ---------- */
-function alarmsList(){const out=[],now=Date.now();for(let i=0;i<=14&&out.length<150;i++){const D=addD(TD(),i);occ(D).forEach(([t,k])=>{if(!t.time||isD(t,k))return;const at=new Date(D+'T'+t.time+':00').getTime()-(t.rem||0)*60000;if(at>now)out.push({id:hash(t.id+'|'+k),at,title:'پلنر · یادآوری',body:'باید این کار رو انجام بدی: '+t.title+(t.rem?' ('+fs(t.rem)+' دقیقه‌ی دیگه)':'')})})}return out}
-function widgetList(){const a=dayItems(TD()).filter(i=>!i.u);return a.filter(i=>!i.d).sort(srt).concat(a.filter(i=>i.d).sort(srtDone)).map(i=>({id:i.t.id,key:i.k,title:i.t.title,time:i.t.time?fs(i.t.time):'',done:i.d}))}
-const exportState=()=>({app:'planner',v:3,t:Date.now(),tasks:S.tasks,R:S.R,theme:S.theme,accent:S.accent});
+function alarmsList(){const out=[],now=Date.now();for(let i=0;i<=14&&out.length<150;i++){const D=addD(TD(),i);occ(D).forEach(([t,k])=>{if(!t.time||isD(t,k))return;const at=new Date(D+'T'+t.time+':00').getTime()-(t.rem||0)*60000;if(at>now)out.push({id:hash(t.id+'|'+k),at,title:t.title,body:'',color:t.pri===2?'#E76B68':t.pri===1?'#F5C978':'#39B98A'})})}return out}
+function widgetList(){const a=dayItems(TD()).filter(i=>!i.u&&!i.d);return a.sort(srt).map(i=>({id:i.t.id,key:i.k,title:i.t.title,time:i.t.time?fs(i.t.time):'',done:false,est:i.t.est||0,pri:i.t.pri||0}))}
+const exportState=()=>({app:'planner',v:3,t:Date.now(),tasks:S.tasks,R:S.R,notes:S.notes||[],theme:S.theme,accent:S.accent,font:S.font||'Vazirmatn',allowPastEdit:!!S.allowPastEdit});
 let st;function syncSoon(){clearTimeout(st);st=setTimeout(sync,600)}
-function sync(){if(!NA)return;try{NA.sync(JSON.stringify({state:JSON.stringify(exportState()),alarms:alarmsList(),widget:widgetList()}))}catch(e){}}
+function sync(){if(!NA)return;try{NA.sync(JSON.stringify({state:JSON.stringify(exportState()),alarms:alarmsList(),widget:widgetList(),dark:document.documentElement.classList.contains('dk')}))}catch(e){}}
 function restoreText(text){let o;try{o=JSON.parse(text)}catch(e){return toast('فایل پشتیبان معتبر نیست (JSON خراب)')}
- let n;if(o&&o.app==='planner'&&o.v===3&&Array.isArray(o.tasks)&&o.R&&typeof o.R==='object'){if(o.tasks.some(t=>!t||!t.id||!t.title||!['d','w','m'].includes(t.type)))return toast('فایل پشتیبان ناقص است');n={tasks:o.tasks,R:o.R,theme:o.theme||'',accent:o.accent||''}}
+ let n;if(o&&o.app==='planner'&&o.v===3&&Array.isArray(o.tasks)&&o.R&&typeof o.R==='object'){if(o.tasks.some(t=>!t||!t.id||!t.title||!['d','w','m'].includes(t.type)))return toast('فایل پشتیبان ناقص است');n={tasks:o.tasks,R:o.R,notes:Array.isArray(o.notes)?o.notes:[],theme:o.theme||'',accent:o.accent||''}}
  else if(o&&(Array.isArray(o)||Array.isArray(o.tasks))){n=migrate(o);n.theme=o.theme||'';n.accent=''}else return toast('این فایل مربوط به Planner نیست');
  const d=o.t?new Date(o.t).toLocaleString('fa-IR',{dateStyle:'medium',timeStyle:'short'}):'نامشخص';
- ask('بازیابی اطلاعات',`فایل شامل ${fs(n.tasks.length)} کار است (تاریخ تهیه: ${d}). اطلاعات فعلی با این فایل جایگزین می‌شه. ادامه بدم؟`,'بازیابی',()=>{try{localStorage.setItem('planner3_prev',JSON.stringify(S))}catch(e){}S.tasks=n.tasks;S.R=n.R;S.theme=n.theme;S.accent=n.accent||S.accent;S.tm=null;save();applyTheme();render();toast('اطلاعات بازیابی شد')})}
+ ask('بازیابی اطلاعات',`فایل شامل ${fs(n.tasks.length)} کار است (تاریخ تهیه: ${d}). اطلاعات فعلی با این فایل جایگزین می‌شه. ادامه بدم؟`,'بازیابی',()=>{try{localStorage.setItem('planner3_prev',JSON.stringify(S))}catch(e){}S.tasks=n.tasks;S.R=n.R;S.notes=n.notes||[];S.theme=n.theme;S.accent=n.accent||S.accent;S.font=n.font||'Vazirmatn';S.allowPastEdit=!!n.allowPastEdit;S.tm=null;save();applyTheme();render();toast('اطلاعات بازیابی شد')})}
 window.onNative=o=>{if(o.k==='status'){NS=o;const s=$('spg');if(s)s.innerHTML=setH()}
- else if(o.k==='pull'){(o.pending||[]).forEach(p=>{const t=task(p.id);if(t&&!isD(t,p.key)&&!lockedKey(p.key))setRec(t,p.key,{d:1,t:Date.now(),dt:TD()})});if((o.pending||[]).length)save();if(o.open&&task(o.open))openForm(o.open);else if(o.add)openForm('','w');render()}
+ else if(o.k==='pull'){(o.pending||[]).forEach(p=>{const t=task(p.id);if(t&&!isD(t,p.key)&&!lockedKey(p.key))setRec(t,p.key,{d:1,t:Date.now(),dt:TD()})});if((o.pending||[]).length)save();if(o.open&&task(o.open))openForm(o.open);else if(o.add)openForm('','w');if(o.widgetTime&&task(o.widgetTime.id))openAct(o.widgetTime.id,o.widgetTime.key);render()}
  else if(o.k==='restore')restoreText(o.text);else if(o.k==='toast')toast(o.msg)};
 window.onBack=()=>{const l=topL();if(l){l.remove();return true}return false};
 /* ---------- theme & boot ---------- */
-function applyTheme(){const dk=S.theme==='dark'||(S.theme===''&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.classList.toggle('dk',dk);document.documentElement.style.setProperty('--ac',S.accent||'#3b82f6');document.documentElement.style.zoom=S.fz||1;try{NA&&NA.bars(dk)}catch(e){}}
+function applyTheme(){const dk=S.theme==='dark'||(S.theme===''&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.classList.toggle('dk',dk);document.documentElement.style.setProperty('--ac',S.accent||'#BDEBE3');document.documentElement.style.setProperty('--font',S.font||'Vazirmatn');document.documentElement.style.zoom=S.fz||1;try{NA&&NA.bars(dk)}catch(e){}}
 matchMedia('(prefers-color-scheme:dark)').addEventListener&&matchMedia('(prefers-color-scheme:dark)').addEventListener('change',applyTheme);
 function tick(){const d=TD();if(d!==curDay){curDay=d;if(DAY<d)DAY=d;render();syncSoon()}}
 setInterval(tick,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
