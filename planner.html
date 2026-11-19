@@ -164,8 +164,8 @@ function migrate(o){const tasks=[],R={};
  (o.habits||[]).forEach(h=>{const id=h.id||uid();tasks.push({id,title:String(h.name),note:'',type:'d',days:h.days||[0,1,2,3,4,5,6],date:'',rep:false,pri:1,time:'',rem:0,est:0,from:addD(TD(),-365),cr:0});R[id]={};Object.keys((o.hl||{})[h.id]||{}).forEach(k=>{R[id][k]={d:1,t:0,dt:k}})});
  return{tasks,R}}
 function load(){let r=null;try{r=JSON.parse(localStorage.getItem('planner3'))}catch(e){}
- if(r&&r.v===3)S=Object.assign(S,r);S.notes=S.notes||[];
- else for(const k of['planner-v2','planner-v1']){try{const o=JSON.parse(localStorage.getItem(k));if(o){Object.assign(S,migrate(o));if(o.theme)S.theme=o.theme;break}}catch(e){}}}
+ if(r&&r.v===3)S=Object.assign(S,r);
+ else for(const k of['planner-v2','planner-v1']){try{const o=JSON.parse(localStorage.getItem(k));if(o){Object.assign(S,migrate(o));if(o.theme)S.theme=o.theme;break}}catch(e){}}S.notes=S.notes||[]}
 function save(){try{localStorage.setItem('planner3',JSON.stringify(S))}catch(e){}syncSoon()}
 /* ---------- occurrences ---------- */
 function occ(D){const out=[];S.tasks.forEach(t=>{
