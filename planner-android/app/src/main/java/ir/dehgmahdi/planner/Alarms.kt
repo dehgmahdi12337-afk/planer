@@ -24,9 +24,9 @@ object Alarms {
         }
     }
 
-    private fun pi(c: Context, id: Int, t: String, b: String): PendingIntent {
+    private fun pi(c: Context, id: Int, t: String, b: String, color: String): PendingIntent {
         val i = Intent(c, AlarmReceiver::class.java).setAction("ALARM")
-            .putExtra("id", id).putExtra("t", t).putExtra("b", b)
+             .putExtra("id", id).putExtra("t", t).putExtra("b", b).putExtra("color", color)
         return PendingIntent.getBroadcast(
             c, id, i, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -43,9 +43,9 @@ object Alarms {
         }
     }
 
-    fun schedule(c: Context, id: Int, at: Long, t: String, b: String) {
+    fun schedule(c: Context, id: Int, at: Long, t: String, b: String, color: String = "#39B98A") {
         val am = c.getSystemService(AlarmManager::class.java)
-        val p = pi(c, id, t, b)
+        val p = pi(c, id, t, b, color)
         try {
             if (Build.VERSION.SDK_INT >= 31 && !am.canScheduleExactAlarms()) {
                 am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, p)
@@ -71,13 +71,13 @@ object Alarms {
             if (at <= now) continue
             val id = o.getInt("id")
             ids.put(id)
-            schedule(c, id, at, o.getString("title"), o.getString("body"))
+            schedule(c, id, at, o.getString("title"), o.optString("body", ""), o.optString("color", "#39B98A"))
         }
         p.edit().putString("alarmIds", ids.toString()).putString("alarms", json).apply()
     }
 
     @SuppressLint("MissingPermission")
-    fun show(c: Context, id: Int, t: String, b: String) {
+    fun show(c: Context, id: Int, t: String, b: String, color: String = "#39B98A") {
         channel(c)
         val open = PendingIntent.getActivity(
             c, id,
@@ -88,14 +88,15 @@ object Alarms {
         val snooze = PendingIntent.getBroadcast(
             c, id xor 0x3FFFFFFF,
             Intent(c, AlarmReceiver::class.java).setAction("SNOOZE")
-                .putExtra("id", id).putExtra("t", t).putExtra("b", b),
+                 .putExtra("id", id).putExtra("t", t).putExtra("b", b).putExtra("color", color),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val n = NotificationCompat.Builder(c, CH)
             .setSmallIcon(R.drawable.ic_stat)
-            .setContentTitle(t)
-            .setContentText(b)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(b))
+             .setContentTitle(t)
+            .setContentText(if (b.isBlank()) null else b)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(if (b.isBlank()) t else b))
+            .setColor(Color.parseColor(color))
             .setContentIntent(open)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -115,11 +116,12 @@ class AlarmReceiver : BroadcastReceiver() {
         val id = i.getIntExtra("id", 0)
         val t = i.getStringExtra("t") ?: "پلنر"
         val b = i.getStringExtra("b") ?: ""
+        val color = i.getStringExtra("color") ?: "#39B98A"
         if (i.action == "SNOOZE") {
             NotificationManagerCompat.from(c).cancel(id)
-            Alarms.schedule(c, id, System.currentTimeMillis() + 10 * 60_000L, t, b)
+            Alarms.schedule(c, id, System.currentTimeMillis() + 10 * 60_000L, t, b, color)
         } else {
-            Alarms.show(c, id, t, b)
+            Alarms.show(c, id, t, b, color)
         }
     }
 }
