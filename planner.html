@@ -104,78 +104,6 @@ nav button.on{flex:2.2;background:rgba(59,130,246,.12);color:var(--ac)}nav butto
 .hdr{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px}
 #toast{position:fixed;inset-inline:16px;bottom:calc(96px + env(safe-area-inset-bottom));max-width:520px;margin-inline:auto;background:var(--sheet);border:1px solid var(--ln);padding:13px 16px;border-radius:var(--r);z-index:60;display:none;box-shadow:var(--sh);animation:fade .2s ease both}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-
-/* ---------- Planner Trantor design system v1 ---------- */
-:root{
- --r:22px;--bg:#F4F5F4;--card:#FFFFFF;--sheet:#FFFFFF;--glass:rgba(17,17,17,.96);
- --tx:#171717;--mut:#777F7D;--ac:#BDEBE3;--ok:#39B98A;--wa:#F5C978;--bad:#E76B68;
- --ln:#E5E9E7;--in:#F0F3F1;--sh:0 2px 10px rgba(20,35,30,.045);
-}
-:root.dk{
- --bg:#252A29;--card:#343A38;--sheet:#303634;--glass:rgba(17,17,17,.97);
- --tx:#F4F7F5;--mut:#AAB4B0;--ac:#BDEBE3;--ok:#39B98A;--wa:#F5C978;--bad:#E76B68;
- --ln:#454D49;--in:#292F2D;--sh:0 3px 14px rgba(0,0,0,.18);
-}
-body::before{display:none}
-#app{padding:calc(10px + env(safe-area-inset-top)) 12px calc(104px + env(safe-area-inset-bottom))}
-.top{margin-bottom:9px}
-.top h1{font-size:20px;letter-spacing:-.3px}
-.g{border:0;border-radius:22px;box-shadow:var(--sh)}
-.ib{width:40px;height:40px;border:0;border-radius:50%;box-shadow:none}
-.b{border-radius:999px;background:#111;color:#fff;padding:10px 17px}
-.b.s{background:var(--in);color:var(--tx)}
-.b.r{background:var(--bad);color:#171717}
-.ch{border-radius:999px;padding:7px 12px}
-.ch.on{background:var(--ac);border-color:transparent;color:#111}
-.in{border:0;border-radius:15px;background:var(--in)}
-.in:focus{border-color:var(--ok);box-shadow:0 0 0 2px rgba(57,185,138,.12)}
-.hero{padding:15px;margin:0 0 9px;background:#111;color:#fff;border-radius:25px}
-.hero .jd,.hero .hr2{color:#B8C1BD}
-.hero .hr2 b{color:#fff}
-.hero .sc{background:var(--ac);color:#111;border-radius:16px}
-.hero .bar{background:#3A4140}
-.hero .bar i{background:var(--ac)}
-.strip{gap:6px;padding-bottom:9px}
-.dc{width:46px;border:0;border-radius:16px;background:var(--card)}
-.dc.on{background:var(--ac);color:#111}
-.dc.on small{color:#303735}
-.dc i{background:var(--ok)}
-.t{border:0;border-radius:17px;padding:9px 7px;margin:0 0 7px;gap:7px;background:var(--card);box-shadow:var(--sh);align-items:flex-start}
-.t .n b{font-size:12px;line-height:1.55;white-space:normal;overflow-wrap:anywhere}
-.t small{font-size:10px;line-height:1.5}
-.cb{width:23px;height:23px;border-radius:7px;border:1.7px solid var(--mut);flex:none}
-.cb.on{background:var(--ok);border-color:var(--ok)}
-.cp{font-size:10px;padding:2px 6px}
-h3{margin:13px 3px 7px;font-size:12px}
-.card{padding:13px;margin-bottom:9px}
-.hb{border:0;border-radius:21px;padding:13px;margin-bottom:9px}
-.tiles{gap:8px;margin:9px 0}
-.tile{padding:12px;border-radius:18px}
-.tile b{font-size:18px}
-nav{
- bottom:calc(8px + env(safe-area-inset-bottom));inset-inline:12px;
- padding:5px;border:0;border-radius:22px;background:#111;
- box-shadow:0 8px 26px rgba(0,0,0,.2);backdrop-filter:none;-webkit-backdrop-filter:none
-}
-nav button{color:#D5DEDA;border-radius:17px;padding:10px 3px}
-nav button.on{background:#fff;color:#111;flex:2.1}
-nav button span{font-size:11px}
-#fab{width:50px;height:50px;border-radius:50%;background:#111;color:#BDEBE3;bottom:calc(78px + env(safe-area-inset-bottom));box-shadow:0 7px 18px rgba(0,0,0,.2)}
-.sh{border-radius:25px 25px 0 0;padding:11px 15px calc(16px + env(safe-area-inset-bottom))}
-.ov.mid .sh{border-radius:24px}
-.mrow{border-radius:15px}
-#toast{border-radius:16px}
-.priority-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;align-items:start}
-.priority-column{min-width:0;border-radius:19px;padding:7px 5px;background:rgba(127,140,134,.07);border:1px solid var(--ln)}
-.priority-column h4{font-size:10px;text-align:center;margin:1px 0 7px;color:var(--mut);font-weight:700}
-.priority-column .t{display:flex;flex-direction:column;gap:5px;padding:8px 6px;min-height:88px}
-.priority-column .t .n{width:100%}
-.priority-column .t .cb{align-self:flex-start}
-.priority-column .t small{display:none}
-.priority-column .empty-col{font-size:10px;text-align:center;color:var(--mut);padding:9px 0}
-.priority-column .t.d{opacity:.65}
-@media(max-width:360px){.priority-columns{gap:4px}.priority-column{padding:5px 3px}.priority-column .t{padding:7px 4px}.priority-column .t .n b{font-size:10px}}
-
 </style>
 </head>
 <body>
@@ -246,14 +174,16 @@ function rowH(it){const t=it.t,r=rec(t,it.k),meta=[{d:'روزانه',w:'هفتگ
  return `<div class="t g${it.d?' d':''}" style="--pc:${PC[t.pri]}"><button class="cb${it.d?' on':''}" data-a="cb" data-t="${t.id}" data-k="${it.k}"${lockedKey(it.k)?' disabled':''}>${it.d?ic('check',17):''}</button><div class="n" data-a="edit" data-id="${t.id}"><b>${esc(t.title)}</b><small>${meta.join(' · ')}</small>${it.d&&r&&r.a&&t.est?cmp(t.est,r.a):''}</div></div>`}
 function daysView(){const td=TD(),isT=DAY===td;let strip='';
  for(let i=0;i<14;i++){const D=addD(td,i),n=dayItems(D).length;strip+=`<button class="dc${D===DAY?' on':''}" data-a="day" data-v="${D}"><small>${i?WL[dow(D)]:'امروز'}</small><b>${fs(jp(D).d)}</b><i${n?'':' style="opacity:0"'}></i></button>`}
- const its=dayItems(DAY),done=its.filter(i=>i.d).sort(srtDone),todo=its.filter(i=>!i.d).sort(srt),tot=its.length,dc=done.length,p=tot?dc/tot:0;
+ const its=dayItems(DAY),und=its.filter(i=>i.u),reg=its.filter(i=>!i.u),sch=reg.filter(i=>!i.d).sort(srt),up=und.filter(i=>!i.d).sort(srt),dn=its.filter(i=>i.d).sort(srtDone),tot=its.length,dc=dn.length,p=tot?dc/tot:0;
  const rel=isT?'امروز':DAY===addD(td,1)?'فردا':fs(Math.round((new Date(DAY+'T12:00:00')-new Date(td+'T12:00:00'))/864e5))+' روز بعد';
- let h=`<div class="note" style="font-weight:700;margin:0 3px 8px;color:var(--mut)">آینده‌ت رو خودت بنویس</div><div class="strip">${strip}</div><div class="g hero"><div class="hr1"><div><div class="wd">${WD[dow(DAY)]}</div><div class="jd">${jf(DAY)} ${fs(jp(DAY).y)} · ${rel}</div></div>${isT?`<div class="sc"><small>امتیاز</small><b>${fs(score())}</b></div>`:''}</div>${bar(p)}<div class="hr2"><span>${fs(dc)} انجام‌شده</span><span>${fs(tot-dc)} باقی‌مانده</span><b>${fs(Math.round(p*100))}٪</b></div></div>`;
- const labels=[['خیلی مهم',2],['متوسط',1],['کم‌اهمیت',0]];
- h+='<div class="priority-columns">'+labels.map(([label,pri])=>{const items=todo.filter(i=>i.t.pri===pri).concat(done.filter(i=>i.t.pri===pri));return `<section class="priority-column"><h4>${label}</h4>${items.length?items.map(rowH).join(''):'<div class="empty-col">—</div>'}</section>`}).join('')+'</div>';
+ let h=`<div class="strip">${strip}</div><div class="g hero"><div class="hr1"><div><div class="wd">${WD[dow(DAY)]}</div><div class="jd">${jf(DAY)} ${fs(jp(DAY).y)} · ${rel}</div></div>${isT?`<div class="sc"><small>امتیاز</small><b>${fs(score())}</b></div>`:''}</div>${bar(p)}<div class="hr2"><span>${fs(dc)} انجام‌شده</span><span>${fs(tot-dc)} باقی‌مانده</span><b>${fs(Math.round(p*100))}٪</b></div></div>`;
+ if(sch.length)h+=`<h3>کارهای زمان‌بندی‌شده</h3>`+sch.map(rowH).join('');
+ if(up.length)h+=`<h3>کارهای بدون تاریخ</h3>`+up.map(rowH).join('');
  if(!tot)h+=`<div class="empty">برای ${rel} کاری ثبت نشده.<br>با دکمه‌ی + کار جدید بساز.</div>`;
+ if(dn.length)h+=`<h3>انجام‌شده · ${fs(dn.length)}</h3>`+dn.map(rowH).join('');
  if(isT){const ms=missed(60);if(ms.length){h+=`<button class="mh" data-a="sm">از دست رفته · ${fs(ms.length)} ${SHOWM?'▴':'▾'}</button>`;
-  if(SHOWM)h+=ms.map(m=>`<div class="t g" style="--pc:${PC[m.t.pri]}"><button class="cb no" disabled>${ic('x',17)}</button><div class="n"><b>${esc(m.t.title)}</b><small>${jf(m.D,true)} · قفل شده</small></div></div>`).join('')}}return h}
+  if(SHOWM)h+=ms.map(m=>`<div class="t g" style="--pc:${PC[m.t.pri]}"><button class="cb no" disabled>${ic('x',17)}</button><div class="n"><b>${esc(m.t.title)}</b><small>${jf(m.D,true)} · قفل شده</small></div></div>`).join('')}}
+ return h}
 const hstat=(t,days)=>{let ok=0,no=0;days.forEach(D=>{const s=cellS(t,D);if(s==='ok')ok++;else if(s==='no')no++});return{ok,no,n:ok+no,p:ok+no?ok/(ok+no):0}};
 function bestStreak(t){let b=0,r=0;for(let i=400;i>=0;i--){const D=addD(TD(),-i);if(!isDue(t,D))continue;if(isD(t,D)){r++;if(r>b)b=r}else if(i>0)r=0}return b}
 const weekDays=off=>{const s=addD(wstart(TD()),off*7),a=[];for(let i=0;i<7;i++)a.push(addD(s,i));return a};
@@ -397,7 +327,7 @@ document.addEventListener('input',e=>{const t=e.target;if(t.classList.contains('
 document.addEventListener('beforeinput',e=>{const t=e.target;if(t.id!=='fn'||!/insertLineBreak|insertParagraph/.test(e.inputType))return;const v=t.value,p=t.selectionStart,line=v.slice(v.lastIndexOf('\n',p-1)+1,p),m=en(line).match(/^(\d+)[.)]\s/);if(m){e.preventDefault();t.setRangeText('\n'+fs(+m[1]+1)+'. ',p,p,'end')}});
 /* ---------- native bridge ---------- */
 function alarmsList(){const out=[],now=Date.now();for(let i=0;i<=14&&out.length<150;i++){const D=addD(TD(),i);occ(D).forEach(([t,k])=>{if(!t.time||isD(t,k))return;const at=new Date(D+'T'+t.time+':00').getTime()-(t.rem||0)*60000;if(at>now)out.push({id:hash(t.id+'|'+k),at,title:'پلنر · یادآوری',body:'باید این کار رو انجام بدی: '+t.title+(t.rem?' ('+fs(t.rem)+' دقیقه‌ی دیگه)':'')})})}return out}
-function widgetList(){const a=dayItems(TD()).filter(i=>!i.u);return a.filter(i=>!i.d).sort(srt).concat(a.filter(i=>i.d).sort(srtDone)).map(i=>({id:i.t.id,key:i.k,title:i.t.title,time:i.t.time?fs(i.t.time):'',done:i.d}))}
+function widgetList(){const a=dayItems(TD()).filter(i=>!i.u&&!i.d);return a.sort(srt).map(i=>({id:i.t.id,key:i.k,title:i.t.title,time:i.t.time?fs(i.t.time):'',done:false,est:i.t.est||0,pri:i.t.pri||0}))}
 const exportState=()=>({app:'planner',v:3,t:Date.now(),tasks:S.tasks,R:S.R,theme:S.theme,accent:S.accent});
 let st;function syncSoon(){clearTimeout(st);st=setTimeout(sync,600)}
 function sync(){if(!NA)return;try{NA.sync(JSON.stringify({state:JSON.stringify(exportState()),alarms:alarmsList(),widget:widgetList()}))}catch(e){}}
@@ -407,7 +337,7 @@ function restoreText(text){let o;try{o=JSON.parse(text)}catch(e){return toast('�
  const d=o.t?new Date(o.t).toLocaleString('fa-IR',{dateStyle:'medium',timeStyle:'short'}):'نامشخص';
  ask('بازیابی اطلاعات',`فایل شامل ${fs(n.tasks.length)} کار است (تاریخ تهیه: ${d}). اطلاعات فعلی با این فایل جایگزین می‌شه. ادامه بدم؟`,'بازیابی',()=>{try{localStorage.setItem('planner3_prev',JSON.stringify(S))}catch(e){}S.tasks=n.tasks;S.R=n.R;S.theme=n.theme;S.accent=n.accent||S.accent;S.tm=null;save();applyTheme();render();toast('اطلاعات بازیابی شد')})}
 window.onNative=o=>{if(o.k==='status'){NS=o;const s=$('spg');if(s)s.innerHTML=setH()}
- else if(o.k==='pull'){(o.pending||[]).forEach(p=>{const t=task(p.id);if(t&&!isD(t,p.key)&&!lockedKey(p.key))setRec(t,p.key,{d:1,t:Date.now(),dt:TD()})});if((o.pending||[]).length)save();if(o.open&&task(o.open))openForm(o.open);else if(o.add)openForm('','w');render()}
+ else if(o.k==='pull'){(o.pending||[]).forEach(p=>{const t=task(p.id);if(t&&!isD(t,p.key)&&!lockedKey(p.key))setRec(t,p.key,{d:1,t:Date.now(),dt:TD()})});if((o.pending||[]).length)save();if(o.open&&task(o.open))openForm(o.open);else if(o.add)openForm('','w');if(o.widgetTime&&task(o.widgetTime.id))openAct(o.widgetTime.id,o.widgetTime.key);render()}
  else if(o.k==='restore')restoreText(o.text);else if(o.k==='toast')toast(o.msg)};
 window.onBack=()=>{const l=topL();if(l){l.remove();return true}return false};
 /* ---------- theme & boot ---------- */

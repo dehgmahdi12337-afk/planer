@@ -1,0 +1,99 @@
+name: Build Planner Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK 36
+        run: |
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort | tail -n 1)"
+          if [ -z "$SDKMANAGER" ]; then echo "::error::sdkmanager was not found in $ANDROID_HOME"; exit 1; fi
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11.1
+
+      - name: Check signing secrets and decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          missing=""
+          for v in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then missing="$missing $v"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing GitHub Secrets:$missing"
+            exit 1
+          fi
+
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/planner-upload.jks"
+          test -s "$RUNNER_TEMP/planner-upload.jks"
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/planner-upload.jks" >> "$GITHUB_ENV"
+
+      - name: Build signed APK
+        working-directory: planner-android
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/planner-upload.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          gradle assembleRelease --no-daemon --stacktrace \
+            -PversionCode=${{ github.run_number }} \
+            -PversionName=1.0.${{ github.run_number }}
+
+      - name: Build signed Android App Bundle
+        working-directory: planner-android
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/planner-upload.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          gradle bundleRelease --no-daemon --stacktrace \
+            -PversionCode=${{ github.run_number }} \
+            -PversionName=1.0.${{ github.run_number }}
+
+      - name: Verify APK signature
+        working-directory: planner-android
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK" | tee sign.txt
+          mkdir -p release
+          cp "$APK" "release/Planner-1.0.${{ github.run_number }}.apk"
+          cp app/build/outputs/bundle/release/app-release.aab release/Planner-1.0.${{ github.run_number }}.aab
+          {
+            echo "### Planner 1.0.${{ github.run_number }}"
+            echo "Application ID: ir.dehgmahdi.planner"
+            echo "Minimum Android: API 23"
+            echo "Signing certificate:"
+            grep "SHA-256" sign.txt || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload APK and AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: Planner-Android-1.0.${{ github.run_number }}
+          path: planner-android/release/*
+          if-no-files-found: error
