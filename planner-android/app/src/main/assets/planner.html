@@ -330,7 +330,7 @@ function alarmsList(){const out=[],now=Date.now();for(let i=0;i<=14&&out.length<
 function widgetList(){const a=dayItems(TD()).filter(i=>!i.u&&!i.d);return a.sort(srt).map(i=>({id:i.t.id,key:i.k,title:i.t.title,time:i.t.time?fs(i.t.time):'',done:false,est:i.t.est||0,pri:i.t.pri||0}))}
 const exportState=()=>({app:'planner',v:3,t:Date.now(),tasks:S.tasks,R:S.R,theme:S.theme,accent:S.accent});
 let st;function syncSoon(){clearTimeout(st);st=setTimeout(sync,600)}
-function sync(){if(!NA)return;try{NA.sync(JSON.stringify({state:JSON.stringify(exportState()),alarms:alarmsList(),widget:widgetList()}))}catch(e){}}
+function sync(){if(!NA)return;try{NA.sync(JSON.stringify({state:JSON.stringify(exportState()),alarms:alarmsList(),widget:widgetList(),dark:document.documentElement.classList.contains('dk')}))}catch(e){}}
 function restoreText(text){let o;try{o=JSON.parse(text)}catch(e){return toast('فایل پشتیبان معتبر نیست (JSON خراب)')}
  let n;if(o&&o.app==='planner'&&o.v===3&&Array.isArray(o.tasks)&&o.R&&typeof o.R==='object'){if(o.tasks.some(t=>!t||!t.id||!t.title||!['d','w','m'].includes(t.type)))return toast('فایل پشتیبان ناقص است');n={tasks:o.tasks,R:o.R,theme:o.theme||'',accent:o.accent||''}}
  else if(o&&(Array.isArray(o)||Array.isArray(o.tasks))){n=migrate(o);n.theme=o.theme||'';n.accent=''}else return toast('این فایل مربوط به Planner نیست');
