@@ -100,7 +100,7 @@ class MainActivity : ComponentActivity() {
         web.overScrollMode = View.OVER_SCROLL_NEVER
         web.isLongClickable = false
         web.setOnLongClickListener { true }
-        web.setBackgroundColor(Color.parseColor("#F5F7FA"))
+        web.setBackgroundColor(Color.parseColor("#F4F5F4"))
         web.addJavascriptInterface(Bridge(), "Android")
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
@@ -180,11 +180,9 @@ class MainActivity : ComponentActivity() {
         val o = JSONObject()
         o.put("k", "pull")
         o.put("pending", JSONArray(sp.getString("pending", "[]")))
-        val widgetTime = sp.getString("widgetTime", null)
-        if (widgetTime != null) o.put("widgetTime", JSONObject(widgetTime))
         o.put("open", sp.getString("open", "") ?: "")
         o.put("add", sp.getBoolean("add", false))
-        sp.edit().putString("pending", "[]").putString("open", "").remove("widgetTime").putBoolean("add", false).apply()
+        sp.edit().putString("pending", "[]").putString("open", "").putBoolean("add", false).apply()
         js("onNative(" + o.toString() + ")")
     }
 
@@ -225,10 +223,8 @@ class MainActivity : ComponentActivity() {
         fun sync(json: String) {
             try {
                 val o = JSONObject(json)
-                val state = JSONObject(o.getString("state"))
                 sp.edit().putString("state", o.getString("state"))
-                    .putString("wd", o.getJSONArray("widget").toString())
-                    .putBoolean("widgetDark", o.optBoolean("dark", state.optString("theme") == "dark")).apply()
+                    .putString("wd", o.getJSONArray("widget").toString()).apply()
                 Alarms.apply(this@MainActivity, o.getJSONArray("alarms").toString())
                 PlannerWidget.refresh(this@MainActivity)
             } catch (e: Exception) {
