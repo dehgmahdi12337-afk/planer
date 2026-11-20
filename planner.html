@@ -351,7 +351,7 @@ A.tab=e=>{TAB=e.dataset.v;render()};A.day=e=>{DAY=e.dataset.v;render()};A.sm=()=
 A.close=()=>closeL();A.settings=()=>openSettings();A.add=()=>openForm('',TAB==='habits'?'d':'w');A.edit=e=>openForm(e.dataset.id);
 A.cb=e=>{const t=task(e.dataset.t),k=e.dataset.k;if(!t)return;
   if(isD(t,k)){ // currently done -> uncomplete
-    if(lockedKey(k))return;
+    if(lockedKey(k)&&!S.allowPastEdit)return;
     setRec(t,k,null);save();render();return;
   }
   const r=rec(t,k);
@@ -442,5 +442,6 @@ function tick(){const d=TD();if(d!==curDay){curDay=d;if(DAY<d)DAY=d;render();syn
 setInterval(tick,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
 if(typeof document!=='undefined'&&$('gs')){$('gs').innerHTML=ic('gear',22);$('fab').innerHTML=ic('plus',28);load();applyTheme();render();sync()}
 </script>
+<script src="overdue.js"></script>
 </body>
 </html>
