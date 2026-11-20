@@ -52,6 +52,9 @@ h3{font-size:13px;color:var(--mut);font-weight:600;margin:18px 4px 8px}
 .t .n{flex:1;min-width:0}.t .n b{display:block;font-size:15.5px;overflow:hidden;text-overflow:ellipsis}
 .t small{display:flex;gap:6px;align-items:center;flex-wrap:wrap;color:var(--mut);font-size:12px;margin-top:3px}
 .t.d .n b{text-decoration:line-through;color:var(--mut)}
+.t.doing{opacity:.95}
+.t.overdue{border-inline-start-color:var(--bad)!important}
+.cb.doing{background:var(--wa);border-color:var(--wa);color:#fff}
 .cb{flex:none;width:28px;height:28px;border-radius:9px;border:2px solid var(--ln);display:grid;place-items:center;color:#fff;background:var(--card)}
 .cb.on{background:var(--ok);border-color:var(--ok)}.cb:disabled{opacity:.4}.cb.on:disabled{opacity:.75}.cb.no{background:var(--bad);border-color:var(--bad)}
 .cp{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:9px;margin-top:5px;font-weight:600;color:#fff}
@@ -171,15 +174,28 @@ const bar=(p,c)=>`<div class="bar"><i style="width:${Math.round(Math.max(0,Math.
 function rowH(it){const t=it.t,r=rec(t,it.k);
  let typLabel=t.type==='d'?'عادت':(!t.date?'بدون تاریخ':(t.type==='m'?(t.rep?'ماهانه':'ماهانه'):(t.rep?'هفتگی':'روزانه')));
  const meta=[typLabel];
- if(t.time)meta.push(ic('clock',12)+' '+fs(t.time));if(t.est&&!(r&&r.a))meta.push((t.type==='d'?'هدف ':'تخمین ')+fm(t.est));
+ const overdue=!it.d&&t.date&&t.date<TD();
+ if(overdue)meta.push('<span style="color:var(--bad);font-weight:700">عقب‌افتاده</span>');
+ if(t.time)meta.push(ic('clock',12)+' '+fs(t.time));
+ if(t.est&&!(r&&r.a))meta.push((t.type==='d'?'هدف ':'تخمین ')+fm(t.est));
  const nl=t.note?t.note.split('\n').filter(x=>x.trim()).length:0;if(nl)meta.push(ic('note',12)+' '+fs(nl)+' بند');
- return `<div class="t g${it.d?' d':''}" style="--pc:${PC[t.pri]}"><button class="cb${it.d?' on':''}" data-a="cb" data-t="${t.id}" data-k="${it.k}"${lockedKey(it.k)?' disabled':''}>${it.d?ic('check',17):''}</button><div class="n" data-a="edit" data-id="${t.id}"><b>${esc(t.title)}</b><small>${meta.join(' · ')}</small>${it.d&&r&&r.a&&t.est?cmp(t.est,r.a):''}</div></div>`}
+ // subtasks progress
+ let prog='';
+ if(t.subs&&t.subs.length){
+  const done=t.subs.filter(s=>s.done).length,tot=t.subs.length,pct=Math.round(done/tot*100);
+  prog=`<div style="margin-top:6px;font-size:12px;color:var(--mut)">${fs(done)} از ${fs(tot)} مرحله · ${fs(pct)}٪${bar(done/tot)}</div>`;
+ }
+ const st=r&&r.st==='doing'&&!it.d?' doing':'';
+ return `<div class="t g${it.d?' d':''}${st}${overdue?' overdue':''}" style="--pc:${PC[t.pri]}"><button class="cb${it.d?' on':''}${r&&r.st==='doing'&&!it.d?' doing':''}" data-a="cb" data-t="${t.id}" data-k="${it.k}"${lockedKey(it.k)?' disabled':''}>${it.d?ic('check',17):(r&&r.st==='doing'?ic('play',15):'')}</button><div class="n" data-a="edit" data-id="${t.id}"><b>${esc(t.title)}</b><small>${meta.join(' · ')}</small>${prog}${it.d&&r&&r.a&&t.est?cmp(t.est,r.a):''}</div></div>`}
 function daysView(){const td=TD(),isT=DAY===td;let strip='';
  for(let i=0;i<14;i++){const D=addD(td,i),n=dayItems(D).length;strip+=`<button class="dc${D===DAY?' on':''}" data-a="day" data-v="${D}"><small>${i?WL[dow(D)]:'امروز'}</small><b>${fs(jp(D).d)}</b><i${n?'':' style="opacity:0"'}></i></button>`}
  const its=dayItems(DAY),und=its.filter(i=>i.u),reg=its.filter(i=>!i.u),sch=reg.filter(i=>!i.d).sort(srt),up=und.filter(i=>!i.d).sort(srt),dn=its.filter(i=>i.d).sort(srtDone),tot=its.length,dc=dn.length,p=tot?dc/tot:0;
  const rel=isT?'امروز':DAY===addD(td,1)?'فردا':fs(Math.round((new Date(DAY+'T12:00:00')-new Date(td+'T12:00:00'))/864e5))+' روز بعد';
  let h=`<div class="strip">${strip}</div><div class="g hero"><div class="hr1"><div><div class="wd">${WD[dow(DAY)]}</div><div class="jd">${jf(DAY)} ${fs(jp(DAY).y)} · ${rel}</div></div>${isT?`<div class="sc"><small>امتیاز</small><b>${fs(score())}</b></div>`:''}</div>${bar(p)}<div class="hr2"><span>${fs(dc)} انجام‌شده</span><span>${fs(tot-dc)} باقی‌مانده</span><b>${fs(Math.round(p*100))}٪</b></div></div>`;
- if(sch.length)h+=`<h3>کارهای زمان‌بندی‌شده</h3>`+sch.map(rowH).join('');
+ const od=sch.filter(i=>i.t.date&&i.t.date<TD());
+ const sch2=sch.filter(i=>!(i.t.date&&i.t.date<TD()));
+ if(od.length)h+=`<h3 style="color:var(--bad)">عقب‌افتاده · ${fs(od.length)}</h3>`+od.map(rowH).join('');
+ if(sch2.length)h+=`<h3>کارهای زمان‌بندی‌شده</h3>`+sch2.map(rowH).join('');
  if(up.length)h+=`<h3>کارهای بدون تاریخ</h3>`+up.map(rowH).join('');
  if(!tot)h+=`<div class="empty">برای ${rel} کاری ثبت نشده.<br>با دکمه‌ی + کار جدید بساز.</div>`;
  if(dn.length)h+=`<h3>انجام‌شده · ${fs(dn.length)}</h3>`+dn.map(rowH).join('');
@@ -236,7 +252,7 @@ const rt=p=>{const h=$(p+'h'),m=$(p+'m');if(!h||!m||h.value===''&&m.value==='')r
 const stf=(p,v)=>{const a=v.split(':');$(p+'h').value=fs(a[0]);$(p+'m').value=fs(a[1])};
 /* ---------- task form ---------- */
 function openForm(id,type){const t=id&&task(id);const isHabit=TAB==='habits'||(t&&t.type==='d');
- F=t?JSON.parse(JSON.stringify(t)):{id:'',title:'',note:'',type:isHabit?'d':(type||'w'),days:[0,1,2,3,4,5,6],date:isHabit?'':DAY,rep:false,pri:1,time:'',rem:0,est:0,wg:0,ps:[]};
+ F=t?JSON.parse(JSON.stringify(t)):{id:'',title:'',note:'',type:isHabit?'d':(type||'w'),days:[0,1,2,3,4,5,6],date:isHabit?'':DAY,rep:false,pri:1,time:'',rem:0,est:0,wg:0,ps:[],subs:[]};if(F.subs===undefined)F.subs=[];
  F.more=false;F._habit=isHabit;
  if(!t&&!isHabit&&TAB==='days')F.date=DAY;
  layer('<div class="sh" id="fsh"></div>');drawForm()}
@@ -290,6 +306,11 @@ ${(isHabit||f.date)?`<div class="fl">یادآوری</div><div class="rw">${[[0,'
 <div class="fl">${isHabit?'هدف زمانی روزانه (مثلاً مطالعه ۳۰ دقیقه)':'مدت زمان تخمینی'}</div>
 <div class="rw">${[0,15,30,45,60,90,120].map(m=>`<button class="ch${f.est===m?' on':''}" data-a="fest" data-v="${m}">${m?fm(m):'بدون زمان'}</button>`).join('')}</div>
 <div class="rw" style="margin-top:8px"><input class="in" id="fe" inputmode="numeric" maxlength="4" placeholder="یا دقیقه را تایپ کن" value="${f.est&&![15,30,45,60,90,120].includes(f.est)?fs(f.est):''}" style="width:170px"></div>
+${!isHabit?`<div class="fl">زیرکارها / چک‌لیست (اختیاری)</div>
+<div id="subs-list">${(f.subs||[]).map((s,i)=>`<div class="rw" style="margin-bottom:6px"><button class="cb${s.done?' on':''}" data-a="subtoggle" data-i="${i}" style="width:24px;height:24px">${s.done?ic('check',14):''}</button><input class="in" data-a="subedit" data-i="${i}" value="${esc(s.title)}" style="flex:1;padding:8px 10px" placeholder="مرحله ${i+1}"><button class="ch" data-a="subdel" data-i="${i}" style="padding:6px 10px">×</button></div>`).join('')}</div>
+<div class="rw" style="margin-top:6px"><button class="ch" data-a="subadd">+ افزودن مرحله</button></div>
+${(f.subs&&f.subs.length)?`<div class="note" style="margin-top:6px">پیشرفت: ${fs(f.subs.filter(s=>s.done).length)} از ${fs(f.subs.length)}</div>`:''}
+`:''}
 ${isHabit?`<div class="fl">روزهای انجام</div><div class="rw"><button class="ch${f.days.length===7?' on':''}" data-a="fall">هر روز</button>${WD.map((n,i)=>`<button class="ch${f.days.includes(i)&&f.days.length<7?' on':''}" data-a="fday" data-v="${i}">${n}</button>`).join('')}</div>
 <div class="fl">هدف هفتگی (چند روز در هفته؟)</div><div class="rw"><button class="ch${f.wg?'':' on'}" data-a="fwg" data-v="0">بدون هدف</button>${[1,2,3,4,5,6,7].map(n=>`<button class="ch${f.wg===n?' on':''}" data-a="fwg" data-v="${n}">${fs(n)}</button>`).join('')}</div>`:
 (f.date?`<div class="fl">تکرار</div><div class="rw"><button class="ch${f.rep?' on':''}" data-a="frep">تکرار هر ${f.type==='w'?'هفته':'ماه'}</button></div>`:'')}
@@ -314,7 +335,7 @@ ${AD.mode==='m'?`<div class="fl">از ساعت</div>${tfield('a1',AD.s)}<div cla
 <div class="rw" style="margin-top:14px"><button class="b" data-a="aok">ثبت و انجام شد</button><button class="b s" data-a="close">انصراف</button></div>`}
 const fsec=s=>fs(z(Math.floor(s/60))+':'+z(s%60));
 setInterval(()=>{const e=$('tk');if(e&&S.tm&&AD&&S.tm.id===AD.id)e.textContent=fsec(Math.floor((Date.now()-S.tm.st)/1000))},500);
-function complete(t,k,o){setRec(t,k,Object.assign({d:1,t:Date.now(),dt:TD()},o||{}));save();render()}
+function complete(t,k,o){setRec(t,k,Object.assign({d:1,st:'done',t:Date.now(),dt:TD()},o||{}));save();render()}
 /* ---------- settings ---------- */
 function setH(){const th=S.theme,acc=['#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444'],last=NS.last?new Date(NS.last).toLocaleString('fa-IR',{dateStyle:'medium',timeStyle:'short'}):'';
  const sg=(a,cur,opts)=>`<div class="seg">${opts.map(([v,l])=>`<button class="${String(cur)===String(v)?'on':''}" data-a="${a}" data-v="${v}">${l}</button>`).join('')}</div>`;
@@ -328,8 +349,22 @@ function openSettings(){layer('<div class="pg" id="spg">'+setH()+'</div>','pgv')
 /* ---------- actions ---------- */
 A.tab=e=>{TAB=e.dataset.v;render()};A.day=e=>{DAY=e.dataset.v;render()};A.sm=()=>{SHOWM=!SHOWM;render()};
 A.close=()=>closeL();A.settings=()=>openSettings();A.add=()=>openForm('',TAB==='habits'?'d':'w');A.edit=e=>openForm(e.dataset.id);
+A.cb=e=>{const t=task(e.dataset.t),k=e.dataset.k;if(!t)return;
+  if(isD(t,k)){ // currently done -> uncomplete
+    if(lockedKey(k))return;
+    setRec(t,k,null);save();render();return;
+  }
+  const r=rec(t,k);
+  if(r&&r.st==='doing'){ // doing -> done
+    if(t.est>0)openAct(t.id,k);
+    else complete(t,k);
+    return;
+  }
+  // empty -> doing
+  setRec(t,k,{d:0,st:'doing',t:Date.now(),dt:TD()});save();render();
+};
+
 A.askok=()=>{closeL();const f=ASK;ASK=null;f&&f()};
-A.cb=e=>{const t=task(e.dataset.t),k=e.dataset.k;if(!t)return;if(isD(t,k)){if(lockedKey(k))return;setRec(t,k,null);save();render();return}if(t.est>0)openAct(t.id,k);else complete(t,k)};
 A.spm=e=>{SP.mode=e.dataset.v;SP.off=0;render()};A.spn=e=>{SP.off+=+e.dataset.v;render()};
 A.ftype=e=>{readForm();F.type=e.dataset.v;drawForm()};
 A.ftype2=e=>{readForm();const v=e.dataset.v;
@@ -366,7 +401,12 @@ A.nperm=()=>NA&&NA.perm();A.ntest=()=>NA?NA.test():toast('این یه اعلان
 A.bnow=()=>{if(!NA)return toast('فقط تو نسخه‌ی اندروید');sync();NA.backupNow()};A.brest=()=>NA?NA.restorePick():toast('فقط تو نسخه‌ی اندروید');
 A.bdir=()=>NA?NA.pickDir():toast('فقط تو نسخه‌ی اندروید');A.bauto=()=>{if(!NA)return toast('فقط تو نسخه‌ی اندروید');sync();NA.autoBackup(!NS.auto)};
 A.clr=()=>ask('حذف انجام‌شده‌ها','کارهای یک‌باره‌ی انجام‌شده و سابقه‌شون حذف می‌شن. عادت‌ها و کارهای تکرارشونده دست نمی‌خورن. ادامه بدم؟','حذف',()=>{S.tasks=S.tasks.filter(t=>{if(t.type==='d'||t.rep)return true;const dn=Object.values(S.R[t.id]||{}).some(r=>r.d);if(dn)delete S.R[t.id];return!dn});save();render();$('spg')&&($('spg').innerHTML=setH())});
-A.more=()=>{readForm();F.more=!F.more;drawForm()};A.fwg=e=>{readForm();F.wg=+e.dataset.v;drawForm()};
+A.more=()=>{readForm();F.more=!F.more;drawForm()};
+A.subadd=()=>{readForm();F.subs=F.subs||[];F.subs.push({id:uid(),title:'',done:false});drawForm()};
+A.subdel=e=>{readForm();const i=+e.dataset.i;F.subs.splice(i,1);drawForm()};
+A.subtoggle=e=>{readForm();const i=+e.dataset.i;if(F.subs[i])F.subs[i].done=!F.subs[i].done;drawForm()};
+A.subedit=e=>{const i=+e.dataset.i;if(F.subs&&F.subs[i])F.subs[i].title=e.target.value;};
+A.fwg=e=>{readForm();F.wg=+e.dataset.v;drawForm()};
 A.pause=e=>{const t=task(e.dataset.id);if(!t)return;t.ps=t.ps||[];const o=t.ps.find(r=>!r[1]);if(o)o[1]=addD(TD(),-1);else t.ps.push([TD(),'']);save();render();toast(o?'عادت دوباره فعال شد':'عادت متوقف شد؛ سوابق حفظ می‌شن')};
 A.fz=e=>{S.fz=+e.dataset.v;save();applyTheme();$('spg').innerHTML=setH()};A.wsd=e=>{S.ws=+e.dataset.v;save();render();$('spg').innerHTML=setH()};
 function csv(){const tn={d:'روزانه',w:'هفتگی',m:'ماهانه'},rows=[['عنوان','نوع','تاریخ','وضعیت','تخمین/هدف (دقیقه)','زمان واقعی (دقیقه)']];
