@@ -47,9 +47,12 @@
   setH = function () {
     var note = LATE_CREDIT(1) === LATE_CREDIT(9)
       ? fs(Math.round(LATE_CREDIT(1) * 100)) + '٪ یک امتیاز' : 'امتیاز کاهشی (بر اساس تأخیر)';
-    return _setH().replace(/(<h3>۲\. ویرایش روزهای گذشته<\/h3><div class="g card"><p class="note">[^<]*)(<\/p>)/,
-      '$1 تکمیل دیرهنگام یک کار، به‌جای امتیاز کامل، ' + note + ' می‌دهد.$2');
+    return _setH().replace(/(<h3>۲\\. ویرایش روزهای گذشته<\\/h3><div class="g card"><p class="note">[^<]*)(<\\/p>)/,
+      '$1 تکمیل دیرهنگام یک کار، به‌جای امتیاز کامل، ' + note + ' می‌دهد.$2')
+      + '<h3>۶. مدیریت کارهای عقب‌افتاده</h3><div class="g card"><p class="note">با فعال‌کردن این گزینه می‌توانی کارهای روزهای گذشته را تکمیل یا ویرایش کنی.</p>'
+      + '<button class="b ' + (S.allowPastEdit ? '' : 's') + '" data-a="odperm">' + (S.allowPastEdit ? 'ویرایش روزهای گذشته فعاله' : 'فعال‌کردن ویرایش روزهای گذشته') + '</button></div>';
   };
+  A.odperm = function () { S.allowPastEdit = !S.allowPastEdit; save(); var p = $('spg'); if (p) p.innerHTML = setH(); };
 
   /* ---------- پنل مستقل ---------- */
   function odRow(m, can) {
