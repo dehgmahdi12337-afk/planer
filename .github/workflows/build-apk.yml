@@ -1,4 +1,4 @@
-name: Build Planner Android
+name: Build Planner APK
 
 on:
   workflow_dispatch:
@@ -33,7 +33,7 @@ jobs:
 
       - name: Check signing secrets and decode keystore
         env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -51,7 +51,7 @@ jobs:
           test -s "$RUNNER_TEMP/planner-upload.jks"
           echo "KEYSTORE_FILE=$RUNNER_TEMP/planner-upload.jks" >> "$GITHUB_ENV"
 
-      - name: Build signed APK
+      - name: Build signed APK only
         working-directory: planner-android
         env:
           KEYSTORE_FILE: ${{ runner.temp }}/planner-upload.jks
@@ -63,37 +63,25 @@ jobs:
             -PversionCode=${{ github.run_number }} \
             -PversionName=1.0.${{ github.run_number }}
 
-      - name: Build signed Android App Bundle
-        working-directory: planner-android
-        env:
-          KEYSTORE_FILE: ${{ runner.temp }}/planner-upload.jks
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          gradle bundleRelease --no-daemon --stacktrace \
-            -PversionCode=${{ github.run_number }} \
-            -PversionName=1.0.${{ github.run_number }}
-
-      - name: Verify APK signature
+      - name: Verify APK signature and prepare release file
         working-directory: planner-android
         run: |
           APK=app/build/outputs/apk/release/app-release.apk
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK" | tee sign.txt
           mkdir -p release
           cp "$APK" "release/Planner-1.0.${{ github.run_number }}.apk"
-          cp app/build/outputs/bundle/release/app-release.aab release/Planner-1.0.${{ github.run_number }}.aab
           {
             echo "### Planner 1.0.${{ github.run_number }}"
             echo "Application ID: ir.dehgmahdi.planner"
             echo "Minimum Android: API 23"
+            echo "Output: APK only"
             echo "Signing certificate:"
             grep "SHA-256" sign.txt || true
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload APK and AAB
+      - name: Upload APK only
         uses: actions/upload-artifact@v4
         with:
-          name: Planner-Android-1.0.${{ github.run_number }}
-          path: planner-android/release/*
+          name: Planner-APK
+          path: planner-android/release/*.apk
           if-no-files-found: error
