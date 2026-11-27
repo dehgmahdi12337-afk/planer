@@ -31,6 +31,29 @@ jobs:
         with:
           gradle-version: 8.11.1
 
+      - name: Generate launcher icons from icon.svg
+        working-directory: planner-android
+        run: |
+          pip install pillow cairosvg
+          python3 - <<'PY'
+          import os
+          import cairosvg
+          from PIL import Image, ImageDraw
+
+          cairosvg.svg2png(url='icon.svg', write_to='icon.png', output_width=512, output_height=512)
+          src = Image.open('icon.png').convert('RGBA')
+          for density, size in (('mdpi', 48), ('hdpi', 72), ('xhdpi', 96), ('xxhdpi', 144), ('xxxhdpi', 192)):
+              folder = 'app/src/main/res/mipmap-' + density
+              os.makedirs(folder, exist_ok=True)
+              icon = src.resize((size, size), Image.Resampling.LANCZOS)
+              icon.save(folder + '/ic_launcher.png')
+              mask = Image.new('L', (size, size), 0)
+              ImageDraw.Draw(mask).rounded_rectangle((0, 0, size - 1, size - 1), radius=int(size * 0.22), fill=255)
+              round_icon = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+              round_icon.paste(icon, (0, 0), mask)
+              round_icon.save(folder + '/ic_launcher_round.png')
+          PY
+
       - name: Check signing secrets and decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 || secrets.ANDROID_KEYSTORE_BASE64 }}
