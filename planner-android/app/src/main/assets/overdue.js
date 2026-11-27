@@ -32,8 +32,12 @@
   };
   function score2() {
     var d = 0;
-    Object.values(S.R).forEach(function (m) {
-      Object.values(m).forEach(function (r) { if (r.d) d += r.late ? LATE_CREDIT(r.late) : 1; });
+    // عادت‌ها در امتیاز کارها حساب نمی‌شوند؛ عادت‌های ازدست‌رفته نیز در missed() نیستند.
+    S.tasks.forEach(function (t) {
+      if (t.type === 'd') return;
+      Object.values(S.R[t.id] || {}).forEach(function (r) {
+        if (r.d) d += r.late ? LATE_CREDIT(r.late) : 1;
+      });
     });
     return Math.round((d - missed(90).length) * 10) / 10;
   }
@@ -121,7 +125,13 @@
   A.sm = function () { OD = { v: 'list', id: '', k: '' }; layer('<div class="sh" id="odp"></div>'); odDraw(); };
   A.odet = function (e) { OD = { v: 'det', id: e.dataset.t, k: e.dataset.k }; odDraw(); };
   A.odback = function () { OD.v = 'list'; odDraw(); };
-  A.odok = function () { A.cb({ dataset: { t: OD.id, k: OD.k } }); };
+  A.odok = function () {
+    if (!S.allowPastEdit) return;
+    var t = task(OD.id), k = OD.k;
+    if (!t) return;
+    // دکمه‌ی تکمیل در این صفحه باید مستقیم تکمیل کند، نه اینکه کار را به «در حال انجام» ببرد.
+    complete(t, k);
+  };
   A.odedit = function () { openForm(OD.id); };
   A.odset = function () { closeL(); A.settings(); };
   A.odtoday = function () {

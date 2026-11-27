@@ -26,6 +26,7 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.webkit.WebViewAssetLoader
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -74,6 +75,7 @@ class MainActivity : ComponentActivity() {
                 } catch (e: Exception) {
                 }
                 sp.edit().putString("dir", uri.toString()).apply()
+                if (sp.getBoolean("auto", true)) Backup.runNow(this)
                 push()
             }
         }
@@ -100,12 +102,43 @@ class MainActivity : ComponentActivity() {
         web.overScrollMode = View.OVER_SCROLL_NEVER
         web.isLongClickable = false
         web.setOnLongClickListener { true }
-        web.setBackgroundColor(Color.parseColor("#F5F7FA"))
+        web.setBackgroundColor(Color.parseColor("#F4F5F4"))
         web.addJavascriptInterface(Bridge(), "Android")
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
                 view: WebView, request: WebResourceRequest
-            ): WebResourceResponse? = loader.shouldInterceptRequest(request.url)
+            ): WebResourceResponse? {
+                val url = request.url
+                loader.shouldInterceptRequest(url)?.let { return it }
+                // Keep remote font loading, but block untrusted external frames/resources.
+                if (request.isForMainFrame ||
+                    url.host == "fonts.googleapis.com" ||
+                    url.host == "fonts.gstatic.com"
+                ) return null
+                return WebResourceResponse(
+                    "text/plain", "utf-8", ByteArrayInputStream(ByteArray(0))
+                )
+            }
+
+            override fun shouldOverrideUrlLoading(
+                view: WebView, request: WebResourceRequest
+            ): Boolean {
+                val uri = request.url
+                if (uri.scheme == "https" &&
+                    uri.host == "appassets.androidplatform.net" &&
+                    uri.path?.startsWith("/assets/") == true
+                ) return false
+
+                if (uri.scheme == "https" || uri.scheme == "http") {
+                    try {
+                        startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    } catch (e: Exception) {
+                        toast("بازکردن پیوند ممکن نشد")
+                    }
+                }
+                // صفحات خارجی و طرح‌های URI ناشناخته به WebView دارای رابط بومی وارد نشوند.
+                return true
+            }
 
             override fun onPageFinished(view: WebView, url: String) {
                 pageReady = true
@@ -273,7 +306,7 @@ class MainActivity : ComponentActivity() {
                 val c = WindowInsetsControllerCompat(window, web)
                 c.isAppearanceLightStatusBars = !dark
                 c.isAppearanceLightNavigationBars = !dark
-                val col = Color.parseColor(if (dark) "#0E131A" else "#F5F7FA")
+                val col = Color.parseColor(if (dark) "#0E131A" else "#F4F5F4")
                 web.setBackgroundColor(col)
                 window.decorView.setBackgroundColor(col)
             }
