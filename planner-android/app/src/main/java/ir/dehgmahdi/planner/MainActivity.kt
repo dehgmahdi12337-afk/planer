@@ -26,6 +26,7 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.webkit.WebViewAssetLoader
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -106,7 +107,18 @@ class MainActivity : ComponentActivity() {
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
                 view: WebView, request: WebResourceRequest
-            ): WebResourceResponse? = loader.shouldInterceptRequest(request.url)
+            ): WebResourceResponse? {
+                val url = request.url
+                loader.shouldInterceptRequest(url)?.let { return it }
+                // Keep remote font loading, but block untrusted external frames/resources.
+                if (request.isForMainFrame ||
+                    url.host == "fonts.googleapis.com" ||
+                    url.host == "fonts.gstatic.com"
+                ) return null
+                return WebResourceResponse(
+                    "text/plain", "utf-8", ByteArrayInputStream(ByteArray(0))
+                )
+            }
 
             override fun shouldOverrideUrlLoading(
                 view: WebView, request: WebResourceRequest
