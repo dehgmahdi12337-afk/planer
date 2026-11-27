@@ -3,7 +3,10 @@ package ir.dehgmahdi.planner
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import androidx.work.BackoffPolicy
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -25,9 +28,24 @@ object Backup {
                 "auto-backup", ExistingPeriodicWorkPolicy.KEEP,
                 PeriodicWorkRequestBuilder<BackupWorker>(7, TimeUnit.DAYS).build()
             )
+            val last = Store.p(c).getLong("bkLast", 0)
+            if (last == 0L || System.currentTimeMillis() - last >= TimeUnit.DAYS.toMillis(7)) {
+                runNow(c)
+            }
         } else {
             wm.cancelUniqueWork("auto-backup")
+            wm.cancelUniqueWork("auto-backup-now")
         }
+    }
+
+    // پشتیبان اولیه یا پشتیبان فوری پس از انتخاب پوشه.
+    fun runNow(c: Context) {
+        val request = OneTimeWorkRequestBuilder<BackupWorker>()
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+            .build()
+        WorkManager.getInstance(c).enqueueUniqueWork(
+            "auto-backup-now", ExistingWorkPolicy.KEEP, request
+        )
     }
 
     // یک فایل برای هر هفته؛ بنابراین فایل تکراری ساخته نمی‌شود.
@@ -72,13 +90,14 @@ object Backup {
 class BackupWorker(c: Context, p: WorkerParameters) : Worker(c, p) {
     override fun doWork(): Result {
         val ctx = applicationContext
-        val st = Store.p(ctx).getString("state", null) ?: return Result.success()
-        try {
+        val st = Store.p(ctx).getString("state", null) ?: return Result.retry()
+        return try {
             Backup.writeAuto(ctx, st)
             Backup.ok(ctx)
+            Result.success()
         } catch (e: Exception) {
             Backup.fail(ctx, e.message ?: "خطای نامشخص")
+            Result.retry()
         }
-        return Result.success()
     }
 }
